@@ -11,4 +11,4 @@ conda activate pi_env
 
 ### Getting the data
 
-To load the emails, you must run the script ```/data/init_data.py```
+To load the emails, you must run the script ```collect_data.py```
