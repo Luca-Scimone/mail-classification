@@ -25,7 +25,7 @@ def parse_mail(filename):
     head = 0
     de, envoye, cc, objet, piece, corps = "", "", "", "", "", ""
 
-    with open("../data/raw_mails/" + filename) as fp:
+    with open("./data/raw_mails/" + filename) as fp:
         line = fp.readline()
         while line:
             if line[:3] == "De:":
@@ -59,12 +59,15 @@ def parse_mail(filename):
 
 
 if __name__ == "__main__":
-    directory = "../data/raw_mails"
+    directory = "./data/raw_mails"
+
+    if not os.path.exists("./data/mails"):
+        os.mkdir("./data/mails")
 
     for filename in os.listdir(directory):
         if filename == "." or filename == "..":
             continue
         else:
             de, envoye, cc, objet, piece, corps = parse_mail(filename)
-            to_json("../data/mails/" + filename, de,
+            to_json("./data/mails/" + filename, de,
                     envoye, cc, objet, piece, corps)
