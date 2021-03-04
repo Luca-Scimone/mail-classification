@@ -7,6 +7,9 @@
 ```
 conda env create --file environment.yml
 conda activate pi_env
+
+# update conda environement
+conda env update environment.yml
 ```
 
 ### Getting the data
