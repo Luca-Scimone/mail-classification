@@ -4,6 +4,7 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import hashlib
+import locale
 import re
 from typing import TextIO
 import argparse
@@ -18,7 +19,8 @@ END_OF_MAIL = "(cordialement|cdt|amicalement|sincèrement|sincère salutation|bi
 # Cette chaine définit par quoi sera remplacé les prénoms-noms. Attentions, les nombres et l'expéditeur ne sont
 # pas concernés.
 ANONYME = ' anonyme-anonyme '
-
+ENCODE_READ = 'UTF-8'
+ENCODE_WRITE = 'UTF-8'
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
 REGEX_MAIL = r'[^\s]*@[^\s]*'
@@ -77,7 +79,7 @@ def hash_user(user: str):
     :return: The hash of user in hexadecimal. The algorithm chosen is blake2
     """
     user_h = hashlib.blake2b(digest_size=32)
-    user_utf8 = user.encode(encoding='cp1252')
+    user_utf8 = user.encode(encoding=ENCODE_WRITE)
     user_h.update(user_utf8)
     return user_h.hexdigest()
 
@@ -146,11 +148,16 @@ def process_mail(mail: str, fd: TextIO):
 
 
 def main():
-    fd = open("output", mode='w')
-    fd_link_hash = open("secret", mode='w')
+    # print(locale.getpreferredencoding(do_setlocale=True))
+    fd = open("output", mode='w', encoding=ENCODE_WRITE)
+    fd_link_hash = open("secret", mode='w', encoding=ENCODE_WRITE)
     my_args = parse()
+    with open("data/mails/mail1.json", encoding='ascii') as test:
+        lines = test.readlines()
+        for line in lines:
+            print(line)
 
-    with open(my_args.file, encoding="cp1252") as f:
+    with open(my_args.file, encoding=ENCODE_READ) as f:
         mail = ""
         lines = f.readlines()
         hash_dict = dict()

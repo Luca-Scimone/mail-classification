@@ -16,9 +16,8 @@ def to_json(raw_path, de, envoye, cc, objet, piece, corps):
     })
 
     path = raw_path + ".json"
-
     with open(path, 'w') as outfile:
-        json.dump(data, outfile)
+        json.dump(data, outfile, ensure_ascii=False, indent=True)
 
 
 def parse_mail(filename):
