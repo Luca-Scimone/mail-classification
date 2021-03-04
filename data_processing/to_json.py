@@ -3,8 +3,7 @@ import json
 
 
 def to_json(raw_path, de, envoye, cc, objet, piece, corps):
-    data = {}
-    data['Mail'] = []
+    data = {'Mail': []}
 
     data['Mail'].append({
         'De': de,
