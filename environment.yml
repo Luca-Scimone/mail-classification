@@ -1,0 +1,9 @@
+name: pi_env
+channels:
+#  - defaults
+  - conda-forge
+#  - hcc
+dependencies:
+  - python=3.8
+  - jupyter=1.0.0
+  - gdown=3.12.2
