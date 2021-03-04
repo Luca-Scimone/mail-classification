@@ -10,30 +10,33 @@ import os
 
 
 # The name of the folder inside of the ZIP
-raw_name="mails"
+raw_name = "mails"
 # The URL containing the data
 url = 'https://drive.google.com/uc?id=18fCa9AgK7tp4ehS2DV7beEA8DEhuqvLu'
 
 
-print ("Clearing previous data...")
+print("Clearing previous data...")
 
 if os.path.exists("./data/data.zip"):
-  os.remove("./data/data.zip")
+    os.remove("./data/data.zip")
+
+if os.path.exists("./data/raw_mails"):
+    shutil.rmtree("./data/raw_mails")
 
 if os.path.exists("./data/mails"):
-	shutil.rmtree("./data/mails")
+    shutil.rmtree("./data/mails")
 
 print("Collecting new data...")
 
 output = "./data/data.zip"
 
-gdown.download(url, output, quiet=False) 
+gdown.download(url, output, quiet=False)
 
 with zipfile.ZipFile("./data/data.zip", 'r') as zip_ref:
     zip_ref.extractall("./data/")
 
 os.remove("./data/data.zip")
 
-os.rename("./data/" + raw_name, "./data/mails")
+os.rename("./data/" + raw_name, "./data/raw_mails")
 
 print("Successfully collected the data.")
