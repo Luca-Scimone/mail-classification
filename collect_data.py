@@ -11,6 +11,8 @@ import os
 
 # The name of the folder inside of the ZIP
 raw_name="mails"
+# The URL containing the data
+url = 'https://drive.google.com/uc?id=18fCa9AgK7tp4ehS2DV7beEA8DEhuqvLu'
 
 
 print ("Clearing previous data...")
@@ -22,8 +24,6 @@ if os.path.exists("./data/mails"):
 	shutil.rmtree("./data/mails")
 
 print("Collecting new data...")
-
-url = 'https://drive.google.com/uc?id=18fCa9AgK7tp4ehS2DV7beEA8DEhuqvLu'
 
 output = "./data/data.zip"
 
