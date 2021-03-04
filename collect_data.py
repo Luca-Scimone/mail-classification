@@ -3,9 +3,14 @@ import zipfile
 import shutil
 import os
 
+# This script should be used to download the data we are using
+# for this project.
+#
+# ------------------------------------------------------------
+
+
 # The name of the folder inside of the ZIP
 raw_name="mails"
-
 
 
 print ("Clearing previous data...")
