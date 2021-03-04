@@ -25,26 +25,29 @@ def parse_mail(filename):
     de, envoye, cc, objet, piece, corps = "", "", "", "", "", ""
 
     with open("./data/raw_mails/" + filename) as fp:
-        line = fp.readline()
-        while line:
-            if line[:3] == "De:":
-                de = line[3:]
+        lines = fp.readlines()
+        for line in lines:
+
+            line_split = line.split(sep=':')
+
+            if line.strip().startswith("De:"):
+                de = line_split[1]
                 head = 1
 
-            if line[:7] == "Envoyé:":
-                envoye = line[7:]
+            if line.strip().startswith("Envoyé:"):
+                envoye = line_split[1]
                 head = 1
 
-            if line[:3] == "Cc:":
-                cc = line[3:]
+            if line.strip().startswith("Cc:"):
+                cc = line_split[1]
                 head = 1
 
-            if line[:6] == "Objet:":
-                objet = line[6:]
+            if line.strip().startswith("Objet:"):
+                objet = line_split[1]
                 head = 1
 
-            if line[:15] == "Pièces jointes:":
-                piece = line[15:]
+            if line.strip().startswith("Pièces jointes:"):
+                piece = line_split[1]
                 head = 1
 
             if head:
@@ -52,14 +55,11 @@ def parse_mail(filename):
             else:
                 corps += line
 
-            line = fp.readline()
-
         return de, envoye, cc, objet, piece, corps
 
 
 if __name__ == "__main__":
     directory = "./data/raw_mails"
-
     if not os.path.exists("./data/mails"):
         os.mkdir("./data/mails")
 
