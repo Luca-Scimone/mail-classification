@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 
 def to_json(raw_path, de, envoye, cc, objet, piece, corps):
@@ -20,39 +21,33 @@ def to_json(raw_path, de, envoye, cc, objet, piece, corps):
 
 
 def parse_mail(filename):
-    head = 0
     de, envoye, cc, objet, piece, corps = "", "", "", "", "", ""
 
     with open("./data/raw_mails/" + filename) as fp:
         lines = fp.readlines()
         for line in lines:
 
-            line_split = line.split(sep=':')
+            if re.search(re.compile(r'(?i)De[ ]*:'), line):
+                de = re.sub(r'(?i)De[ ]*:', '', line, 1)
+                continue
 
-            if line.strip().startswith("De:"):
-                de = line_split[1]
-                head = 1
+            if re.search(re.compile(r'(?i)Envoyé[ ]*:'), line):
+                envoye = re.sub(r'(?i)Envoyé[ ]*:', '', line, 1)
+                continue
 
-            if line.strip().startswith("Envoyé:"):
-                envoye = line_split[1]
-                head = 1
+            if re.search(re.compile(r'(?i)Cc[ ]*:'), line):
+                cc = re.sub(r'(?i)Cc[ ]*:', '', line, 1)
+                continue
 
-            if line.strip().startswith("Cc:"):
-                cc = line_split[1]
-                head = 1
+            if re.search(re.compile(r'(?i)Objet[ ]*:'), line):
+                objet = re.sub(r'(?i)Objet[ ]*:', '', line, 1)
+                continue
 
-            if line.strip().startswith("Objet:"):
-                objet = line_split[1]
-                head = 1
+            if re.search(re.compile(r'(?i)Pièces Jointes[ ]*:'), line):
+                piece = re.sub(r'(?i)Pièces Jointes[ ]*:', '', line, 1)
+                continue
 
-            if line.strip().startswith("Pièces jointes:"):
-                piece = line_split[1]
-                head = 1
-
-            if head:
-                head = 0
-            else:
-                corps += line
+            corps += line
 
         return de, envoye, cc, objet, piece, corps
 
