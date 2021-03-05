@@ -3,12 +3,13 @@ import json
 import re
 
 
-def to_json(raw_path, de, envoye, cc, objet, piece, corps):
+def to_json(raw_path, de, envoye, cc, objet, piece, a, corps):
     data = {'Mail': []}
 
     data['Mail'].append({
         'De': de,
         'Envoyé': envoye,
+        'À': a,
         'Cc': cc,
         'Objet': objet,
         'Pièces jointes': piece,
@@ -21,35 +22,51 @@ def to_json(raw_path, de, envoye, cc, objet, piece, corps):
 
 
 def parse_mail(filename):
-    de, envoye, cc, objet, piece, corps = "", "", "", "", "", ""
+    de, envoye, cc, objet, piece, a, corps = "", "", "", "", "", "", ""
 
     with open("./data/raw_mails/" + filename) as fp:
         lines = fp.readlines()
         for line in lines:
 
-            if re.search(re.compile(r'(?i)De[ ]*:'), line):
-                de = re.sub(r'(?i)De[ ]*:', '', line, 1)
-                continue
+            if de == "":
+                match = re.search(re.compile(r'(?i)De[ ]*:'), line)
+                if match:
+                    de = line[match.end():]
+                    continue
+            
+            if envoye == "":
+                match = re.search(re.compile(r'(?i)Envoyé[ ]*:'), line)
+                if match:
+                    envoye = line[match.end():]
+                    continue
 
-            if re.search(re.compile(r'(?i)Envoyé[ ]*:'), line):
-                envoye = re.sub(r'(?i)Envoyé[ ]*:', '', line, 1)
-                continue
+            if cc == "":
+                match = re.search(re.compile(r'(?i)Cc[ ]*:'), line)
+                if match:
+                    cc = line[match.end():]
+                    continue
 
-            if re.search(re.compile(r'(?i)Cc[ ]*:'), line):
-                cc = re.sub(r'(?i)Cc[ ]*:', '', line, 1)
-                continue
+            if objet == "":
+                match = re.search(re.compile(r'(?i)Objet[ ]*:'), line) 
+                if match:
+                    objet = line[match.end():]
+                    continue
 
-            if re.search(re.compile(r'(?i)Objet[ ]*:'), line):
-                objet = re.sub(r'(?i)Objet[ ]*:', '', line, 1)
-                continue
+            if piece == "":
+                match = re.search(re.compile(r'(?i)Pièces Jointes[ ]*:'), line)
+                if match:
+                    piece = line[match.end():]
+                    continue
 
-            if re.search(re.compile(r'(?i)Pièces Jointes[ ]*:'), line):
-                piece = re.sub(r'(?i)Pièces Jointes[ ]*:', '', line, 1)
-                continue
+            if a == "":
+                match = re.search(re.compile(r'(?i)À[ ]*:'), line)
+                if match:
+                    a = line[match.end():]
+                    continue
 
             corps += line
 
-        return de, envoye, cc, objet, piece, corps
+        return de, envoye, cc, objet, piece, a, corps
 
 
 if __name__ == "__main__":
@@ -61,6 +78,6 @@ if __name__ == "__main__":
         if filename == "." or filename == "..":
             continue
         else:
-            de, envoye, cc, objet, piece, corps = parse_mail(filename)
+            de, envoye, cc, objet, piece, a, corps = parse_mail(filename)
             to_json("./data/mails/" + filename, de,
-                    envoye, cc, objet, piece, corps)
+                    envoye, cc, objet, piece, a, corps)
