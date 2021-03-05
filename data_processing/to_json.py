@@ -33,7 +33,7 @@ def parse_mail(filename):
                 if match:
                     de = line[match.end():]
                     continue
-            
+
             if envoye == "":
                 match = re.search(re.compile(r'(?i)Envoyé[ ]*:'), line)
                 if match:
@@ -47,7 +47,7 @@ def parse_mail(filename):
                     continue
 
             if objet == "":
-                match = re.search(re.compile(r'(?i)Objet[ ]*:'), line) 
+                match = re.search(re.compile(r'(?i)Objet[ ]*:'), line)
                 if match:
                     objet = line[match.end():]
                     continue
