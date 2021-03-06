@@ -19,8 +19,8 @@ END_OF_MAIL = "(cordialement|cdt|amicalement|sincèrement|sincère salutation|bi
 # Cette chaine définit par quoi sera remplacé les prénoms-noms. Attentions, les nombres et l'expéditeur ne sont
 # pas concernés.
 ANONYME = ' anonyme-anonyme '
-ENCODE_READ = 'UTF-8'
-ENCODE_WRITE = 'UTF-8'
+ENCODE_READ = 'cp1252'
+ENCODE_WRITE = 'utf8'
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
 REGEX_MAIL = r'[^\s]*@[^\s]*'
@@ -63,16 +63,6 @@ def parse() -> argparse.Namespace:
     return args
 
 
-def levenshtein(a, b):
-    if not a:
-        return len(b)
-    if not b:
-        return len(a)
-    return min(levenshtein(a[1:], b[1:]) + (a[0] != b[0]),
-               levenshtein(a[1:], b) + 1,
-               levenshtein(a, b[1:]) + 1)
-
-
 def hash_user(user: str):
     """
     :param user: It is a string to hash.
@@ -101,6 +91,7 @@ def process_mail(mail: str, fd: TextIO):
     result = re.search(r"(de\s*:\s*)([^\n]*)", mail, re.IGNORECASE)
     if result:
         # on récupère le deuxième groupe
+        # on strip pour ne pas hasher les espaces !
         user_from: str = result.group(2).strip()
         hash_link[user_from] = hash_user(user_from)
         mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
@@ -152,17 +143,13 @@ def main():
     fd = open("output", mode='w', encoding=ENCODE_WRITE)
     fd_link_hash = open("secret", mode='w', encoding=ENCODE_WRITE)
     my_args = parse()
-    with open("data/mails/mail1.json", encoding='ascii') as test:
-        lines = test.readlines()
-        for line in lines:
-            print(line)
 
     with open(my_args.file, encoding=ENCODE_READ) as f:
         mail = ""
         lines = f.readlines()
         hash_dict = dict()
         for line in lines:
-            if line.lower().strip().startswith('de:'):
+            if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
                 # on traite le mail précédent
                 hash_dict = process_mail(mail, fd)
                 for key, value in hash_dict.items():
