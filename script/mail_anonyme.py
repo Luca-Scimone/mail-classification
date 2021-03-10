@@ -90,6 +90,10 @@ def check_dependency(my_args):
         print("L'option --dir et --file ne peuvent pas etre utilisé en meme temps")
         exit(0)
 
+    if my_args.file and my_args.rec:
+        print("L'option --rec est réservé au répertoire et ne peut pas être utilisé avec un fichier")
+        exit(0)
+
 
 def hash_user(user: str):
     """
@@ -232,9 +236,9 @@ def main(fd_output: TextIO, fd_secret: TextIO):
             hash_dict = process_file(file, fd_output, hash_dict)
 
     elif my_args.dir:
-        files = os.listdir(my_args.dir)
-        for file in files:
-            hash_dict = process_file(file, fd_output, hash_dict)
+        with os.scandir(my_args.dir) as files:
+            for file in files:
+                hash_dict = process_file(os.path.join(file), fd_output, hash_dict)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
