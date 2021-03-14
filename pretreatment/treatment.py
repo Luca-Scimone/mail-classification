@@ -151,6 +151,9 @@ def init():
         mail = re.sub(r'(https|http)?:\/\/(\w|\.|\/|\?|\=|\&|\%)*\b',
                       '', mail, flags=re.MULTILINE)
 
+        # On supprime les chiffres
+        mail = re.sub(r'[0-9]', '', mail, flags=re.MULTILINE)
+
         # On met tout en minuscule
         mail = mail.lower()
 

@@ -2,6 +2,10 @@ from LDA_word_cloud import word_cloud
 import os
 import gensim
 from gensim import corpora
+from pprint import pprint
+
+import pyLDAvis.gensim
+from gensim.models import CoherenceModel
 
 import importlib.util
 spec = importlib.util.spec_from_file_location(
@@ -37,4 +41,24 @@ lda_model = gensim.models.ldamodel.LdaModel(corpus=vectorized_corpus,
                                             alpha='auto',
                                             per_word_topics=True)
 
-word_cloud(lda_model)
+# Print the Keyword in the 10 topics
+pprint(lda_model.print_topics())
+doc_lda = lda_model[vectorized_corpus]
+
+
+texts = getattr(data,'cleaned_mails')
+
+# Compute Coherence Score
+coherence_model_lda = CoherenceModel(model=lda_model, texts=texts, dictionary=id2word, coherence='c_v')
+coherence_lda = coherence_model_lda.get_coherence()
+print('\nCoherence Score: ', coherence_lda)
+
+doc_complete = getattr(data,'mails')
+
+doc_complete.append(lda_model.id2word[len(lda_model.id2word)-1]) #last corpus word is "jawbone"
+
+doc_clean = [str(doc).split() for doc in doc_complete]
+doc_term_matrix = [lda_model.id2word.doc2bow(doc) for doc in doc_clean]
+vis_data = pyLDAvis.gensim.prepare(lda_model, doc_term_matrix, lda_model.id2word)
+
+pyLDAvis.save_html(vis_data, 'LDA_Visualization.html')
