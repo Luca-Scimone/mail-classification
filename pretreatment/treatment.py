@@ -35,12 +35,12 @@ Cleaned_Mails = []
 
 
 def return_token(sentence):
-    # Tokeniser la phrase
+    # Tokenize the sentence
     doc = nlp(sentence)
-    # Retourner le texte de chaque token
+    # Return the text of each token
     return [X.text for X in doc]
 
-
+# Fonction that cleans stop words
 def clean_stop_words(token_list):
     clean_words = []
     for token in token_list:
@@ -48,14 +48,14 @@ def clean_stop_words(token_list):
             clean_words.append(token)
     return clean_words
 
-
+# Fonction that returns the text stemmed
 def return_stem(clean_text):
     return [stemmer.stem(X) for X in clean_text]
 
 
 tokenizer = nltk.RegexpTokenizer(r'\w+')
 
-
+# Fonction that returns the bag of words of evry mail in data set
 def to_bag_of_words(mails):
     listunique = []
     for mail in mails:
@@ -64,7 +64,7 @@ def to_bag_of_words(mails):
                 listunique.append(word)
     return listunique
 
-
+# Fonction that returns the bag of words for each mail
 def to_bag_of_words_per_mail(mails):
     listeunique_mail = []
     for mail in mails:
@@ -75,7 +75,7 @@ def to_bag_of_words_per_mail(mails):
         listeunique_mail.append(listunique)
     return listeunique_mail
 
-
+# Fonction that transforms a list of token of a mail in a string
 def to_vector_of_mails(mails):
     output = []
     for mail in mails:
@@ -86,46 +86,66 @@ def to_vector_of_mails(mails):
 
     return output
 
-
 class mails_data:
+    """
+    A class used to represent mails_data
+
+    ...
+
+    Attributes
+    ----------
+    mails: list of str
+        A list of string of each mails
+        For example : ["Ceci est un mail", "Ceci est un autre mail"]
+    
+    cleaned_mails : list of list of str
+        A list of token of each mails
+        For example : [['Ceci', 'est', 'un', 'mail'], ['Ceci' 'est', 'un', 'autre','mail']]
+
+    Methods
+    -------
+    vector_of_mails()
+        Returns a list of strings of each cleaned mail
+        For example : ["Ceci est mail", "Ceci est autr mail"]
+    
+    bag_of_words()
+        Returns a list of token which represent the bag
+        of words of every cleaned mail in the dataset
+        For example : ['Je', 'suis', 'sac', 'mots]
+    
+    bag_of_words_per_mails()
+        Returns a list of token which reprensent the bag
+        of words of each cleaned mail
+        For example : [['Je', 'suis', 'sac', 'mots', 'mail', '1'],['Je', 'suis', 'sac', 'mots', 'mail', '2']]
+    """
+
     def __init__(self):
+        """
+        Parameters
+        ----------
+        Mails: list of str
+            List of string of mails in dataset
+        Cleaned_Mails: str
+            List of token of each mails cleaned
+        """
+
         init()
         self.mails = Mails
         self.cleaned_mails = Cleaned_Mails
 
-    """
-    The method returns the data like a vector of strings.
-    Each string being a mail.
-    For exemple: ['Ceci est un mail', 'Ceci est un autre mail']
-    -------
-    """
+
 
     def vector_of_mails(self):
         return to_vector_of_mails(self.cleaned_mails)
 
-    """
-    The method returns the general bag of words of every mail in the data set.
-    For exemple: ['Ceci', 'est', 'un', 'autre', 'mail']
-    -------
-    """
-
     def bag_of_words(self):
         return to_bag_of_words(self.cleaned_mails)
-
-    """
-    The method returns the bag of words per mail.
-    For exemple: [['Ceci', 'est', 'un', 'mail'],['Ceci', 'est', 'un', 'autre', 'mail']]
-
-    The diference between words_by_words() and bag_of_words_per_mail() comes from the fact
-    that bag_of_words outputs vectors with unique occurences of words.
-    -------
-    """
 
     def bag_of_words_per_mail(self):
         return to_bag_of_words_per_mail(self.cleaned_mails)
 
 
-# fonction qui initialise toutes les varibles globales
+# Fonction that initialise every global variables
 def init():
     for _, _, files in os.walk(data_mail_json):
         # Reading evry file in the folder
