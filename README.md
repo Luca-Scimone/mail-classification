@@ -49,11 +49,4 @@ Go to https://drive.google.com/drive/folders/1aHmq-LpAzD4c9_43hIL9QHL1y8LL6GKL?u
 
 Delete the previous version of mails.zip and add the new one.
 
-Get the shared link of mails.zip
-
-In the ```collect_data.py``` script modify line 15 with the new URL:
-
-```{python}
-# The URL containing the data
-url = 'https://drive.google.com/uc?id=18fCa9AgK7tp4ehS2DV7beEA8DEhuqvLu'
-```
+Get the shared link of mails.zip and use it as an argument
