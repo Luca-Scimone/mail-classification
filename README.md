@@ -41,12 +41,3 @@ One usage exemple:
 python3 ./script/collect_data.py https://drive.google.com/uc?id=1w2JsmhgSSFbHDokavDZ7jtsUpedAwUAk OUT
 python3 ./data_processing/to_json.py "ISO-8859-1"
 ```
-
-
-### To modify the data
-
-Go to https://drive.google.com/drive/folders/1aHmq-LpAzD4c9_43hIL9QHL1y8LL6GKL?usp=sharing.
-
-Delete the previous version of mails.zip and add the new one.
-
-Get the shared link of mails.zip and use it as an argument
