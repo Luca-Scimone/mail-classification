@@ -61,4 +61,4 @@ doc_clean = [str(doc).split() for doc in doc_complete]
 doc_term_matrix = [lda_model.id2word.doc2bow(doc) for doc in doc_clean]
 vis_data = pyLDAvis.gensim.prepare(lda_model, doc_term_matrix, lda_model.id2word)
 
-pyLDAvis.save_html(vis_data, 'LDA_Visualization.html')
+pyLDAvis.save_html(vis_data, './LDA/LDA_Visualization.html')
