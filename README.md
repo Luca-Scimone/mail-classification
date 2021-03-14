@@ -23,8 +23,8 @@ To load the emails:
 
 ```{python}
 python3 ./script/collect_data.py [URL] [FOLDER NAME]
-python3 ./data_processing/to_json.py
-```
+python3 ./data_processing/to_json.py [ENCODING]
+``` 
 
 Available datasets:
 
@@ -39,7 +39,7 @@ One usage exemple:
 
 ```{python}
 python3 ./script/collect_data.py https://drive.google.com/uc?id=1w2JsmhgSSFbHDokavDZ7jtsUpedAwUAk OUT
-python3 ./data_processing/to_json.py
+python3 ./data_processing/to_json.py "ISO-8859-1"
 ```
 
 

@@ -1,6 +1,16 @@
 import os
 import json
 import re
+import sys
+
+if len(sys.argv) != 2:
+    print("Wrong arguments.")
+    print("Usage: python3 ./data_processing/to_json.py [ENCODING]")
+    exit (1)
+
+# The URL containing the data
+encoding = str(sys.argv[1])
+
 
 
 def to_json(raw_path, de, envoye, cc, objet, piece, a, corps):
@@ -24,7 +34,7 @@ def to_json(raw_path, de, envoye, cc, objet, piece, a, corps):
 def parse_mail(filename):
     de, envoye, cc, objet, piece, a, corps = "", "", "", "", "", "", ""
 
-    with open("./data/raw_mails/" + filename) as fp:
+    with open("./data/raw_mails/" + filename, encoding=encoding) as fp:
         lines = fp.readlines()
         for line in lines:
 
