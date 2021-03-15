@@ -28,10 +28,10 @@ python3 ./data_processing/to_json.py [ENCODING]
 
 Available datasets:
 
-- Mails CGT: 
+- Mails CGT (non labelisées): 
 	- argument 1: https://drive.google.com/uc?id=18fCa9AgK7tp4ehS2DV7beEA8DEhuqvLu
 	- argument 2: mails
-- Mails labélisés: 
+- Mails anonymisés par une société tierece (non labelisés): 
 	- argument 1: https://drive.google.com/uc?id=1w2JsmhgSSFbHDokavDZ7jtsUpedAwUAk
 	- argument 2: OUT
 
