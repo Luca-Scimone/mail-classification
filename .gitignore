@@ -4,3 +4,5 @@ output
 secret
 file1.csv
 file2.csv
+LDA/__pycache__/
+pretreatment/__pycache__/
