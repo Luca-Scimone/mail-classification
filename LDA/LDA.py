@@ -1,8 +1,10 @@
 from LDA_word_cloud import word_cloud
+from LDA_sentences import sentences_chart
 import os
 import gensim
 from gensim import corpora
 from pprint import pprint
+import copy
 
 import pyLDAvis.gensim
 from gensim.models import CoherenceModel
@@ -15,50 +17,77 @@ spec.loader.exec_module(pretreatement)
 data = pretreatement.mails_data()
 
 
+
+
 directory = "./data/mails/"
 
 # The mails
 mails = data.vector_of_mails()
 bow_per_mail = data.bag_of_words_per_mail()
 
-# number of topics
+# Number of topics
 num_topics = 4
 
 # The dictionary
-id2word = corpora.Dictionary(bow_per_mail)
+dictionary = corpora.Dictionary(bow_per_mail)
 
-# Vectorized corpus
-vectorized_corpus = id2word.doc2bow(mails)
+# The corpus
+corpus = [dictionary.doc2bow(text) for text in bow_per_mail]
+
+print('Number of unique tokens: %d' % len(dictionary))
+print('Number of documents: %d' % len(corpus))
 
 # Build LDA model
-lda_model = gensim.models.ldamodel.LdaModel(corpus=vectorized_corpus,
-                                            id2word=id2word,
-                                            num_topics=num_topics,
-                                            random_state=100,
-                                            update_every=1,
-                                            chunksize=400,
-                                            passes=10,
-                                            alpha='auto',
-                                            per_word_topics=True)
+# Set training parameters.
+num_topics = 4
+chunksize = 2000
+passes = 20
+iterations = 400
+eval_every = None  # Don't evaluate model perplexity, takes too much time.
 
-# Print the Keyword in the 10 topics
+# Make a index to word dictionary.
+temp = dictionary[0]  # This is only to "load" the dictionary.
+id2word = dictionary.id2token
+
+lda_model = gensim.models.ldamodel.LdaModel(
+    corpus=corpus,
+    id2word=id2word,
+    chunksize=chunksize,
+    alpha='auto',
+    eta='auto',
+    iterations=iterations,
+    num_topics=num_topics,
+    passes=passes,
+    eval_every=eval_every
+)
+
+# Print the Keyword in the last topic
 pprint(lda_model.print_topics())
-doc_lda = lda_model[vectorized_corpus]
-
-
-texts = getattr(data,'cleaned_mails')
+doc_lda = lda_model[corpus]
 
 # Compute Coherence Score
-coherence_model_lda = CoherenceModel(model=lda_model, texts=texts, dictionary=id2word, coherence='c_v')
-coherence_lda = coherence_model_lda.get_coherence()
-print('\nCoherence Score: ', coherence_lda)
+top_topics = lda_model.top_topics(corpus) #, num_words=20)
 
-doc_complete = getattr(data,'mails')
+# Average topic coherence is the sum of topic coherences of all topics, divided by the number of topics.
+avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
+print('Average topic coherence: %.4f.' % avg_topic_coherence)
 
-doc_complete.append(lda_model.id2word[len(lda_model.id2word)-1]) #last corpus word is "jawbone"
+pprint(top_topics)
 
-doc_clean = [str(doc).split() for doc in doc_complete]
-doc_term_matrix = [lda_model.id2word.doc2bow(doc) for doc in doc_clean]
-vis_data = pyLDAvis.gensim.prepare(lda_model, doc_term_matrix, lda_model.id2word)
+vis = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary=dictionary)
 
-pyLDAvis.save_html(vis_data, './LDA/LDA_Visualization.html')
+print("Data can now be visualized under ./LDA/LDA_Visualization.html")
+pyLDAvis.save_html(vis, './LDA/LDA_Visualization.html')
+
+print()
+print()
+print("Document topis:")
+print(100*'=')
+
+idx = 0
+for el in corpus:
+    print("--> mail", idx, "is inside cluster(s):", end=' ')
+    for topic in lda_model.get_document_topics(el):
+        print(topic[0], end=' ')
+    print('\n', 100*'=')
+    idx = idx + 1

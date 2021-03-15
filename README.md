@@ -23,7 +23,7 @@ To load the emails:
 
 ```{python}
 python3 ./script/collect_data.py [URL] [FOLDER NAME]
-python3 ./data_processing/to_json.py [ENCODING]
+python3 ./data_processing/to_json.py [ENCODING -- exemple: utf-8, ISO-8859-1]
 ``` 
 
 Available datasets:
