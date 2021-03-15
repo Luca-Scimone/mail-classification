@@ -29,8 +29,10 @@ data_raw_mails = os.path.join(data_path, "raw_mails")
 
 # Global variables
 Mails = []
+Nom_mail = []
 Objet_mail = []
 Corps_mail = []
+Label_mail = []
 Cleaned_Mails = []
 
 
@@ -85,6 +87,12 @@ def to_vector_of_mails(mails):
         output.append(mail_str)
 
     return output
+
+def list_label():
+    return Label_mail
+
+def list_nom():
+    return Nom_mail
 
 class mails_data:
     """
@@ -143,6 +151,12 @@ class mails_data:
 
     def bag_of_words_per_mail(self):
         return to_bag_of_words_per_mail(self.cleaned_mails)
+    
+    def get_mails_label(self):
+        return list_label()
+    
+    def get_mails_nom(self):
+        return list_nom()
 
 
 # Fonction that initialise every global variables
@@ -156,12 +170,16 @@ def init():
             # Ouvrir avec les bon codecs utf8
             with codecs.open(file_path, 'r', encoding='utf8') as f:
                 data_json = json.load(f)
+                file_name = os.path.basename(file_path)
+                Nom_mail.append(file_name)
 
             for msg in data_json['Mail']:
                 corps = msg['Corps']
                 obj = msg['Objet']
+                cat = msg['Catégorie']
             Objet_mail.append(obj)
             Corps_mail.append(corps)
+            Label_mail.append(cat)
             temp = obj + corps
             Mails.append(temp)
 
