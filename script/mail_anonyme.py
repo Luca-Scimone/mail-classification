@@ -74,6 +74,13 @@ def parse() -> argparse.Namespace:
     hel: str = """Lire récursivement un dossier. A utiliser avec --dir."""
     all_args.add_argument("--rec", help=hel, action="store_true")
 
+    hel: str = """Entrez un chemin vers un fichier ou un dossier de sortie. Si le chemin est celui d'un dossier,""" \
+               """ le script va scinder les mails en plusieurs fichiers.""" \
+               """ par défault, la sortie est un seul fichier appelé output"""
+    all_args.add_argument("--out", help=hel)
+
+    args = all_args.parse_args()
+
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
 
@@ -175,14 +182,14 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     return hash_link
 
 
-def process_file(file_input: str, file_output: TextIO, hash_dict: dict):
+def process_file(file_input: str, output, hash_dict: dict):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
     Parameters
     ----------
     file_input The file that contains mail.
-    file_output File to write mail without sensible data.
+    output Can be either a file descriptor or a folder path (cf. description of the main function)
     file_secret A file that links hashed sensible data and the non hashed one.
     hash_dict A structure that contains links betweeen hashed sensible data and the non hashed one.
 
@@ -191,29 +198,56 @@ def process_file(file_input: str, file_output: TextIO, hash_dict: dict):
     -------
 
     """
+
+    # Test if it is a directory path
+    file_cnt = -1
+    if type(output) is str:
+        file_cnt = 0
+    else:
+        file_output = output
+
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
         lines = f.readlines()
         for line in lines:
             if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
                 # on traite le mail précédent
+
+                # if --out [FOLDER] was set, we create a new file for each mail
+                if file_cnt >= 0:
+                    file_output = open(
+                        output + "/mail_" + str(file_cnt), mode='w', encoding=ENCODE_WRITE)
+                    file_cnt = file_cnt + 1
+
                 hash_dict = process_mail(mail, file_output, hash_dict)
                 mail = ""
+
+                if file_cnt >= 0:
+                    file_output.close()
+
             mail = mail + line
 
         # On traite le dernier mail
-        hash_dict = process_mail(mail, file_output, hash_dict)
+        if file_cnt >= 0:
+            file_output = open(output + "/mail_" + str(file_cnt),
+                               mode='w', encoding=ENCODE_WRITE)
+            hash_dict = process_mail(mail, file_output, hash_dict)
+            file_output.close()
+        else:
+            hash_dict = process_mail(mail, file_output, hash_dict)
 
         return hash_dict
 
 
-def main(fd_output: TextIO, fd_secret: TextIO):
+def main(output, fd_secret: TextIO):
     """
     This is the main function. It calls parse function that parses user arguments, check the legality of them and
     anonymize mails contained in file or directory given by user.
     Parameters
     ----------
-    fd_output : File where all mails without sensible data will be written.
+    output : Usualy a file descriptor where all mails without sensible data will be written.
+    [!] In case of the --out option; output can be a path to a folder; meaning it will not
+    be a file descriptor but a string. This will be tested in process_file
     fd_secret : File where correspondences between string/hash_string will be written
 
     Returns
@@ -228,26 +262,50 @@ def main(fd_output: TextIO, fd_secret: TextIO):
     hash_dict = dict()
 
     if my_args.file:
-        hash_dict = process_file(my_args.file, fd_output, hash_dict)
+        hash_dict = process_file(my_args.file, output, hash_dict)
 
     elif my_args.dir and my_args.rec:
-        result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(my_args.dir) for f in filenames]
+        result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(
+            my_args.dir) for f in filenames]
         for file in result:
-            hash_dict = process_file(file, fd_output, hash_dict)
+            hash_dict = process_file(file, output, hash_dict)
 
     elif my_args.dir:
         with os.scandir(my_args.dir) as files:
             for file in files:
-                hash_dict = process_file(os.path.join(file), fd_output, hash_dict)
+                hash_dict = process_file(
+                    os.path.join(file), output, hash_dict)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
 
 
 if __name__ == "__main__":
-    fid_output = open("output", mode='w', encoding=ENCODE_WRITE)
+    is_file = 0
+
+    my_args = parse()
+
+    if my_args.out:
+        if os.path.islink(my_args.out):
+            print("error: Symbolic links are not supported.")
+            exit(1)
+
+        elif os.path.isfile(my_args.out):
+            is_file = 1
+            output = open(my_args.out, mode='w', encoding=ENCODE_WRITE)
+
+        elif os.path.isdir(my_args.out):
+            output = str(my_args.out)
+
+        else:
+            print("Path error with --out option")
+            exit(1)
+    else:
+        output = open("output", mode='w', encoding=ENCODE_WRITE)
+
     fid_secret = open("secret", mode='w', encoding=ENCODE_WRITE)
     # execute only if run as a script
-    main(fid_output, fid_secret)
+    main(output, fid_secret)
     fid_secret.close()
-    fid_output.close()
+    if is_file:
+        output.close()
