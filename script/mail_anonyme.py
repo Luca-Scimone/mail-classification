@@ -9,6 +9,7 @@ Pour un directory : python3 mail_anonyme.py --dir d --rec
 """
 
 import hashlib
+from io import StringIO
 import os
 import re
 from typing import TextIO
@@ -25,7 +26,7 @@ END_OF_MAIL = r"(cordialement|cdt|amicalement|sincèrement|sincère salutation|b
 # pas concernés.
 ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
-ENCODE_READ = 'cp1252'
+ENCODE_READ = 'utf8'
 ENCODE_WRITE = 'utf8'
 
 # Don't edit bellow
@@ -182,7 +183,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     return hash_link
 
 
-def process_file(file_input: str, output, hash_dict: dict):
+def process_file(file_input: str, output: str, hash_dict: dict):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
@@ -198,13 +199,7 @@ def process_file(file_input: str, output, hash_dict: dict):
     -------
 
     """
-
-    # Test if it is a directory path
-    file_cnt = -1
-    if type(output) is str:
-        file_cnt = 0
-    else:
-        file_output = output
+    file_cnt = 0
 
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
@@ -212,34 +207,25 @@ def process_file(file_input: str, output, hash_dict: dict):
         for line in lines:
             if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
                 # on traite le mail précédent
-
-                # if --out [FOLDER] was set, we create a new file for each mail
-                if file_cnt >= 0:
-                    file_output = open(
-                        output + "/mail_" + str(file_cnt), mode='w', encoding=ENCODE_WRITE)
-                    file_cnt = file_cnt + 1
-
+                file_output = open(
+                    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+                file_cnt = file_cnt + 1
                 hash_dict = process_mail(mail, file_output, hash_dict)
                 mail = ""
-
-                if file_cnt >= 0:
-                    file_output.close()
+                file_output.close()
 
             mail = mail + line
 
         # On traite le dernier mail
-        if file_cnt >= 0:
-            file_output = open(output + "/mail_" + str(file_cnt),
-                               mode='w', encoding=ENCODE_WRITE)
-            hash_dict = process_mail(mail, file_output, hash_dict)
-            file_output.close()
-        else:
-            hash_dict = process_mail(mail, file_output, hash_dict)
+        file_output = open(
+            os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+        hash_dict = process_mail(mail, file_output, hash_dict)
+        file_output.close()
 
         return hash_dict
 
 
-def main(output, fd_secret: TextIO):
+def main(output: str, fd_secret: TextIO):
     """
     This is the main function. It calls parse function that parses user arguments, check the legality of them and
     anonymize mails contained in file or directory given by user.
@@ -286,26 +272,18 @@ if __name__ == "__main__":
     my_args = parse()
 
     if my_args.out:
-        if os.path.islink(my_args.out):
-            print("error: Symbolic links are not supported.")
+        if os.path.islink(my_args.out) or os.path.isfile(my_args.out):
+            print("error: Please provide a directory for --out")
             exit(1)
-
-        elif os.path.isfile(my_args.out):
-            is_file = 1
-            output = open(my_args.out, mode='w', encoding=ENCODE_WRITE)
-
         elif os.path.isdir(my_args.out):
             output = str(my_args.out)
-
         else:
-            print("Path error with --out option")
+            print("Path error with --out option. Does the directory exist ?")
             exit(1)
     else:
         output = open("output", mode='w', encoding=ENCODE_WRITE)
 
     fid_secret = open("secret", mode='w', encoding=ENCODE_WRITE)
-    
+
     main(output, fid_secret)
     fid_secret.close()
-    if is_file:
-        output.close()

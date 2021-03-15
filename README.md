@@ -34,10 +34,13 @@ Available datasets:
 - Mails anonymisés par une société tierece (non labelisés): 
 	- argument 1: https://drive.google.com/uc?id=1w2JsmhgSSFbHDokavDZ7jtsUpedAwUAk
 	- argument 2: OUT
+- Mails anonymisés par notre script (partielement labelisés)
+	- argument 1: https://drive.google.com/uc?id=1O1qOK8nWRa3hTVSxUnPAYJN5Di_am9bi
+	- argument 2: raw_mails
 
 One usage exemple:
 
 ```{python}
-python3 ./script/collect_data.py https://drive.google.com/uc?id=1w2JsmhgSSFbHDokavDZ7jtsUpedAwUAk OUT
-python3 ./data_processing/to_json.py "ISO-8859-1"
+python3 ./script/collect_data.py https://drive.google.com/uc?id=1O1qOK8nWRa3hTVSxUnPAYJN5Di_am9bi raw_mails
+python3 ./data_processing/to_json.py "utf-8"
 ```
