@@ -5,3 +5,4 @@ secret
 file1.csv
 file2.csv
 *.pyc
+__pycache__
