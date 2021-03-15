@@ -304,7 +304,7 @@ if __name__ == "__main__":
         output = open("output", mode='w', encoding=ENCODE_WRITE)
 
     fid_secret = open("secret", mode='w', encoding=ENCODE_WRITE)
-    # execute only if run as a script
+    
     main(output, fid_secret)
     fid_secret.close()
     if is_file:

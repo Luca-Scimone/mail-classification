@@ -8,8 +8,12 @@ dependencies:
   - jupyter=1.0.0
   - gdown=3.12.2
   - jupyterlab=3.0.6
+  - numpy
+  - spacy
+  - nltk
+  - pandas
+  - matplotlib
   - gensim
-  - pyldavis
+  - wordcloud
   - pytz
   - pillow
-  - pyldavis
