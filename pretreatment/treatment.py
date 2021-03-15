@@ -35,6 +35,20 @@ Corps_mail = []
 Label_mail = []
 Cleaned_Mails = []
 
+extra_stop_words = ["bonjour", "origine", "merci", "nom", "msg", "www", "envoye", "a",
+                    "email", "cordialement", "demande", "envoye", "rue", "fwd",
+                    "www", "sans", "destinataire", "a", "toute", "bien", "re", 
+                    "conseiller", "si", "http", "ref", "si", "cet", "via", "adresse", 
+                    "message", "cedex", "suite", "objet", "plus", "etre", "ete", "avoir",
+                    "car", "mailto", "rcs", "restons", "toutes", "monsieur", "madame", "mail",
+                    "contrat", "marais", "gifhttps", "utmmediumemailutmsource", "mozilla",
+                    "afin", "date", "tel", "telephone", "site", "vouloir", "cette", "faire", "cijoint",
+                    "voici", "energie", "tous", "juillet", "deja", "energies", "environnement", "imprimez",
+                    "contribuerez", "preservation"]
+
+for esw in extra_stop_words:
+    stopWords.add(esw)
+
 
 def return_token(sentence):
     # Tokenize the sentence

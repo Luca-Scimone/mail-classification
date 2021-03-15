@@ -17,10 +17,7 @@ def word_cloud(lda_model):
 
     topics = lda_model.show_topics(formatted=False)
 
-    fig, axes = plt.subplots(
-        round(lda_model.num_topics/2), 2, figsize=(10, 10), sharex=True, sharey=True)
-
-    print("Printing", len(axes.flatten()), "axes.")
+    fig, axes = plt.subplots(2, 2, figsize=(10, 10), sharex=True, sharey=True)
 
     for i, ax in enumerate(axes.flatten()):
         fig.add_subplot(ax)

@@ -1,13 +1,10 @@
 from LDA_word_cloud import word_cloud
-from LDA_sentences import sentences_chart
 import os
 import gensim
 from gensim import corpora
 from pprint import pprint
-import copy
 
 import pyLDAvis.gensim
-from gensim.models import CoherenceModel
 
 import importlib.util
 spec = importlib.util.spec_from_file_location(
@@ -17,16 +14,11 @@ spec.loader.exec_module(pretreatement)
 data = pretreatement.mails_data()
 
 
-
-
 directory = "./data/mails/"
 
 # The mails
 mails = data.vector_of_mails()
 bow_per_mail = data.bag_of_words_per_mail()
-
-# Number of topics
-num_topics = 4
 
 # The dictionary
 dictionary = corpora.Dictionary(bow_per_mail)
@@ -66,7 +58,7 @@ pprint(lda_model.print_topics())
 doc_lda = lda_model[corpus]
 
 # Compute Coherence Score
-top_topics = lda_model.top_topics(corpus) #, num_words=20)
+top_topics = lda_model.top_topics(corpus)  # , num_words=20)
 
 # Average topic coherence is the sum of topic coherences of all topics, divided by the number of topics.
 avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
@@ -84,10 +76,22 @@ print()
 print("Document topis:")
 print(100*'=')
 
-idx = 0
-for el in corpus:
-    print("--> mail", idx, "is inside cluster(s):", end=' ')
+for name, el in zip(data.get_mails_nom(), corpus):
+    print("--> mail", name, "is inside cluster(s):", end=' ')
     for topic in lda_model.get_document_topics(el):
         print(topic[0], end=' ')
     print('\n', 100*'=')
-    idx = idx + 1
+
+word_cloud(lda_model)
+
+# Topic 0:
+# bonjour origine merci nom www envoye msg a email si
+#
+# Topic 1:
+# cordialement demande envoye origine msg rue email a bonjour
+#
+# Topic 2:
+# fwd www msg origine email sans destinataire a toute
+#
+# Topic 3:
+# bien email re espass bonjour a origine msg conseiller cordialement
