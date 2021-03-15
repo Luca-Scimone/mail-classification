@@ -1,14 +1,16 @@
 name: pi_env
 channels:
 #  - defaults
-  - conda-forge
+  - conda
 #  - hcc
 dependencies:
   - python=3.8
-  - jupyter=1.0.0
-  - gdown=3.12.2
-  - jupyterlab=3.0.6
-  - prompt_toolkit=1.0.15
+  - jupyter
+  - conda-forge::gdown
+  - conda-forge::pyldavis
+  - conda-forge::wordcloud
+  - jupyterlab
+  - prompt_toolkit
   - ipython
   - tornado
   - numpy
@@ -17,6 +19,7 @@ dependencies:
   - pandas
   - matplotlib
   - gensim
-  - wordcloud
   - pytz
   - pillow
+  - seaborn
+  - scikit-learn

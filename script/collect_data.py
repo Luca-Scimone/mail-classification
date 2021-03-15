@@ -1,8 +1,8 @@
-import gdown
-import zipfile
+import os
 import shutil
 import sys
-import os
+import zipfile
+import gdown
 
 # This script should be used to download the data we are using
 # for this project.
@@ -22,7 +22,7 @@ raw_name = str(sys.argv[2])
 
 print("Clearing previous data...")
 
-import os, shutil
+
 folder = "./data/"
 for filename in os.listdir(folder):
     file_path = os.path.join(folder, filename)

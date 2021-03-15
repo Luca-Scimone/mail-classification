@@ -1,11 +1,12 @@
 # Importing Libraries
-import spacy
 import json
 import nltk
 import codecs
-from nltk.corpus import stopwords
 import os
 import re
+import spacy
+from nltk.corpus import stopwords
+from spacy.lang.fr import French
 
 from nltk.stem.snowball import SnowballStemmer
 
