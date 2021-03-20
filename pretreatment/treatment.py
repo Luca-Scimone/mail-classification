@@ -45,7 +45,7 @@ extra_stop_words = ["bonjour", "origine", "merci", "nom", "msg", "www", "envoye"
                     "contrat", "marais", "gifhttps", "utmmediumemailutmsource", "mozilla",
                     "afin", "date", "tel", "telephone", "site", "vouloir", "cette", "faire", "cijoint",
                     "voici", "energie", "tous", "juillet", "deja", "energies", "environnement", "imprimez",
-                    "contribuerez", "preservation"]
+                    "contribuerez", "preservation", "vert", "electricite", "juin", "mois", "for", "of", "to", "from"]
 
 for esw in extra_stop_words:
     stopWords.add(esw)

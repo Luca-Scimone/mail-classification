@@ -13,8 +13,15 @@ encoding = str(sys.argv[1])
 
 
 
-def to_json(raw_path, de, envoye, cc, objet, piece, a, corps, cat):
+def to_json(raw_path, de, envoye, cc, objet, piece, a, corps):
     data = {'Mail': []}
+
+    cat = [{'Mon déménagement': 0,
+        'Ma relève de compteur': 0,
+        'Je veux faire une réclamation ': 0,
+        'Mon contrat – Mes coordonnées personnelles': 0,
+        'Ma facture – Mon paiement ': 0,
+        'Mon Espace client': 0 }]
 
     data['Mail'].append({
         'De': de,
@@ -33,7 +40,7 @@ def to_json(raw_path, de, envoye, cc, objet, piece, a, corps, cat):
 
 
 def parse_mail(filename):
-    de, envoye, cc, objet, piece, a, corps, cat = "", "", "", "", "", "", "", ""
+    de, envoye, cc, objet, piece, a, corps = "", "", "", "", "", "", ""
 
     with open("./data/raw_mails/" + filename, encoding=encoding) as fp:
         lines = fp.readlines()
@@ -75,15 +82,9 @@ def parse_mail(filename):
                     a = line[match.end():]
                     continue
 
-            if cat == "":
-                match = re.search(re.compile(r'(?i)Catégories[ ]*:'), line)
-                if match:
-                    cat = line[match.end():]
-                    continue
-
             corps += line
 
-        return de, envoye, cc, objet, piece, a, corps, cat
+        return de, envoye, cc, objet, piece, a, corps
 
 
 if __name__ == "__main__":
@@ -95,6 +96,6 @@ if __name__ == "__main__":
         if filename == "." or filename == "..":
             continue
         else:
-            de, envoye, cc, objet, piece, a, corps, cat = parse_mail(filename)
+            de, envoye, cc, objet, piece, a, corps = parse_mail(filename)
             to_json("./data/mails/" + filename, de,
-                    envoye, cc, objet, piece, a, corps, cat)
+                    envoye, cc, objet, piece, a, corps)
