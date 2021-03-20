@@ -16,6 +16,8 @@ from typing import TextIO
 import argparse
 from random import *
 
+#dfd
+ 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
 
