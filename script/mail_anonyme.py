@@ -127,14 +127,13 @@ def hash_user(user: str):
     return user_h.hexdigest()
 
 
-def stanza_label(mail: str):
-    if not os.path.isdir("data"):
-        os.mkdir("data")
-    stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
-    stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
-    stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
+def stanza_label(mail: str, nlp):
+    #if not os.path.isdir("data"):
+    #    os.mkdir("data")
+    #stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
+    #stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
+    #stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
 
-    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
     doc = nlp(mail)
 
     for token in doc.ents:
@@ -165,9 +164,10 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     level_of_cleaning = my_args.level
 
     if level_of_cleaning == 1:
-        mail = stanza_label(mail)
-        # catch phone number
-        # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
+        nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
+        mail = stanza_label(mail, nlp)
+        # catch phone number Since hash can contain a suite of characteres very similar to phone number, it's better
+        # to start with phone_number
         results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
         for result in results:
             mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
