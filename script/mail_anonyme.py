@@ -15,6 +15,7 @@ import re
 from typing import TextIO
 import argparse
 from random import *
+import stanza
 
 #dfd
  
@@ -29,12 +30,13 @@ END_OF_MAIL = r"(cordialement|cdt|amicalement|sincèrement|sincère salutation|b
 # pas concernés.
 ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
-ENCODE_READ = 'utf8'
 ENCODE_WRITE = 'utf8'
 RANDOM_NUMBER = randint(0,9)
+ENCODE_READ = 'cp1252'
 
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
+ENCODE_WRITE = 'utf8'
 REGEX_MAIL = r'[^\s]*@[^\s]*'
 NAME_RE = r"[A-Z][A-Za-zéàè]+"
 NAMES_RE = r"(?:" + NAME_RE + r"[ ]+){1,3}(?:" + NAME_RE + r")"
@@ -93,6 +95,9 @@ def parse() -> argparse.Namespace:
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
 
+    hel: str = """Choisir l'encodage de lecture des fichiers contenant les mails. Encodage par défaut : cp1252."""
+    all_args.add_argument("--readenc", help=hel, default="cp1252")
+
     args = all_args.parse_args()
     return args
 
@@ -117,9 +122,27 @@ def hash_user(user: str):
     :return: The hash of user in hexadecimal. The algorithm chosen is blake2
     """
     user_h = hashlib.blake2b(digest_size=32)
-    user_utf8 = user.encode(encoding=ENCODE_WRITE)
-    user_h.update(user_utf8)
+    user_encode = user.encode(encoding=ENCODE_WRITE)
+    user_h.update(user_encode)
     return user_h.hexdigest()
+
+
+# stanza.download('en')
+# stanza.download('fr')
+# stanza.download('de')
+
+def stanza_label(mail: str):
+    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner')
+    #doc = nlp(mail)
+    doc = nlp("Barack Obama was born in Hawaii. He was elected president in 2008.")
+
+    for token in doc.ents:
+        print(token.text, token.type)
+        if token == "PER":
+            print("PERSONNNEEEEE")
+
+    #print(doc.ents)
+#stanza_label("hello")k
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
@@ -212,6 +235,8 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
             print(re.sub(r'\s', " ", maybe_is_name))
     print("\n")
     fd.write(mail)
+
+    # stanza_label(mail)
     return hash_link
 
 
@@ -232,12 +257,11 @@ def process_file(file_input: str, output: str, hash_dict: dict):
 
     """
     file_cnt = 0
-
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
         lines = f.readlines()
         for line in lines:
-            if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
+            if re.search(r'de\s*:', line.strip(), re.IGNORECASE) and file_cnt > 0:
                 # on traite le mail précédent
                 file_output = open(
                     os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
@@ -299,9 +323,11 @@ def main(output: str, fd_secret: TextIO):
 
 
 if __name__ == "__main__":
-    is_file = 0
 
     my_args = parse()
+
+    if my_args.readenc:
+        ENCODE_READ = my_args.readenc
 
     if my_args.out:
         if os.path.islink(my_args.out) or os.path.isfile(my_args.out):
@@ -313,7 +339,8 @@ if __name__ == "__main__":
             print("Path error with --out option. Does the directory exist ?")
             exit(1)
     else:
-        output = open("output", mode='w', encoding=ENCODE_WRITE)
+        # default folder for output mails
+        output = "output"
 
     fid_secret = open("secret", mode='w', encoding=ENCODE_WRITE)
 

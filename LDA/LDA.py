@@ -1,13 +1,10 @@
 from LDA_word_cloud import word_cloud
-from LDA_sentences import sentences_chart
 import os
 import gensim
 from gensim import corpora
 from pprint import pprint
-import copy
 
 import pyLDAvis.gensim
-from gensim.models import CoherenceModel
 
 import importlib.util
 spec = importlib.util.spec_from_file_location(
@@ -17,16 +14,11 @@ spec.loader.exec_module(pretreatement)
 data = pretreatement.mails_data()
 
 
-
-
 directory = "./data/mails/"
 
 # The mails
 mails = data.vector_of_mails()
 bow_per_mail = data.bag_of_words_per_mail()
-
-# Number of topics
-num_topics = 4
 
 # The dictionary
 dictionary = corpora.Dictionary(bow_per_mail)
@@ -62,32 +54,56 @@ lda_model = gensim.models.ldamodel.LdaModel(
 )
 
 # Print the Keyword in the last topic
-pprint(lda_model.print_topics())
-doc_lda = lda_model[corpus]
+# pprint(lda_model.print_topics())
+# doc_lda = lda_model[corpus]
 
 # Compute Coherence Score
-top_topics = lda_model.top_topics(corpus) #, num_words=20)
+top_topics = lda_model.top_topics(corpus)  # , num_words=20)
 
 # Average topic coherence is the sum of topic coherences of all topics, divided by the number of topics.
 avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
 print('Average topic coherence: %.4f.' % avg_topic_coherence)
 
-pprint(top_topics)
+# pprint(top_topics)
 
 vis = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary=dictionary)
 
 print("Data can now be visualized under ./LDA/LDA_Visualization.html")
 pyLDAvis.save_html(vis, './LDA/LDA_Visualization.html')
 
-print()
-print()
-print("Document topis:")
-print(100*'=')
+print(10*'\n')
 
-idx = 0
-for el in corpus:
-    print("--> mail", idx, "is inside cluster(s):", end=' ')
-    for topic in lda_model.get_document_topics(el):
-        print(topic[0], end=' ')
-    print('\n', 100*'=')
-    idx = idx + 1
+print("Cleaning previous clustering output...")
+open("clustering.out", 'w').close()
+print("Document topis saved under clustering.out")
+
+for name, el in zip(data.get_mails_nom(), corpus):
+    with open("clustering.out", "a") as out:
+        to_out = "-->" + str(name) + "\nIs inside cluster(s):"
+        out.write(to_out)
+        for topic in lda_model.get_document_topics(el):
+            to_out = str(topic[0]) + " "
+            out.write(to_out)
+        to_out = "\n" + 100*'=' + "\n"
+        out.write(to_out)
+        out.close()
+
+print(40*'=')
+for i, _ in enumerate(lda_model.get_topics()):
+    print("TOPIC", i, ":")
+    pprint(lda_model.print_topic(i))
+    print(40*'=')
+
+word_cloud(lda_model)
+
+# Topic 0:
+# bonjour origine merci nom www envoye msg a email si
+#
+# Topic 1:
+# cordialement demande envoye origine msg rue email a bonjour
+#
+# Topic 2:
+# fwd www msg origine email sans destinataire a toute
+#
+# Topic 3:
+# bien email re espass bonjour a origine msg conseiller cordialement
