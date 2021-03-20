@@ -142,6 +142,7 @@ def stanza_label(mail: str, nlp):
             mail = re.sub(token.text, ANONYME, mail)
         if token.type == "LOC":
             mail = re.sub(token.text, ANONYME, mail)
+    print(mail)
     return mail
 
 
@@ -256,24 +257,38 @@ def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
     """
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
+
         lines = f.readlines()
         for line in lines:
-            if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
-                # on traite le mail précédent
-                file_output = open(
-                    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
-                file_cnt = file_cnt + 1
-                hash_dict = process_mail(mail, file_output, hash_dict)
-                mail = ""
-                file_output.close()
+            mail = mail+line
 
-            mail = mail + line
-
-        # On traite le dernier mail
         file_output = open(
             os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+        file_cnt = file_cnt + 1
         hash_dict = process_mail(mail, file_output, hash_dict)
+        mail = ""
         file_output.close()
+
+        #for line in lines:
+        #    if re.search(r'de\s*:', line.strip(), re.IGNORECASE) and file_cnt > 0:
+         #       # on traite le mail précédent
+          #      file_output = open(
+           #         os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+            #    file_cnt = file_cnt + 1
+         #       hash_dict = process_mail(mail, file_output, hash_dict)
+          #      mail = ""
+           #     file_output.close()
+
+          #  mail = mail + line
+
+        # On traite le dernier mail
+        #file_cnt = file_cnt + 1
+        #file_output = open(
+        #    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+        #hash_dict = process_mail(mail, file_output, hash_dict)
+        #file_output.close()
 
         return hash_dict, file_cnt
 
