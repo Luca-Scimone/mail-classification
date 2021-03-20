@@ -54,8 +54,8 @@ lda_model = gensim.models.ldamodel.LdaModel(
 )
 
 # Print the Keyword in the last topic
-pprint(lda_model.print_topics())
-doc_lda = lda_model[corpus]
+# pprint(lda_model.print_topics())
+# doc_lda = lda_model[corpus]
 
 # Compute Coherence Score
 top_topics = lda_model.top_topics(corpus)  # , num_words=20)
@@ -64,23 +64,35 @@ top_topics = lda_model.top_topics(corpus)  # , num_words=20)
 avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
 print('Average topic coherence: %.4f.' % avg_topic_coherence)
 
-pprint(top_topics)
+# pprint(top_topics)
 
 vis = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary=dictionary)
 
 print("Data can now be visualized under ./LDA/LDA_Visualization.html")
 pyLDAvis.save_html(vis, './LDA/LDA_Visualization.html')
 
-print()
-print()
-print("Document topis:")
-print(100*'=')
+print(10*'\n')
+
+print("Cleaning previous clustering output...")
+open("clustering.out", 'w').close()
+print("Document topis saved under clustering.out")
 
 for name, el in zip(data.get_mails_nom(), corpus):
-    print("--> mail", name, "is inside cluster(s):", end=' ')
-    for topic in lda_model.get_document_topics(el):
-        print(topic[0], end=' ')
-    print('\n', 100*'=')
+    with open("clustering.out", "a") as out:
+        to_out = "-->" + str(name) + "\nIs inside cluster(s):"
+        out.write(to_out)
+        for topic in lda_model.get_document_topics(el):
+            to_out = str(topic[0]) + " "
+            out.write(to_out)
+        to_out = "\n" + 100*'=' + "\n"
+        out.write(to_out)
+        out.close()
+
+print(40*'=')
+for i, _ in enumerate(lda_model.get_topics()):
+    print("TOPIC", i, ":")
+    pprint(lda_model.print_topic(i))
+    print(40*'=')
 
 word_cloud(lda_model)
 
