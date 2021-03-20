@@ -45,7 +45,7 @@ PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,1
 TO_RE = r"(à\s*:)([^\n]*)"
 CC_RE = r"(cc\s*:)([^\n]*)"
 NUMERO = r"[0-9]"
-MAJUSCULE_TEXT = r"^(?!\.).*[A-Z][A-Za-zéàè]+"
+MAJUSCULE_TEXT = r"[ ][A-Z][A-Za-zéàè]+([ ]|[\n])"
 
 
 def parse() -> argparse.Namespace:
