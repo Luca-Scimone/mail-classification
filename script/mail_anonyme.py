@@ -17,8 +17,8 @@ import argparse
 from random import *
 import stanza
 
-#dfd
- 
+# dfd
+
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
 
@@ -127,24 +127,22 @@ def hash_user(user: str):
     return user_h.hexdigest()
 
 
-# stanza.download('en')
-#stanza.download('fr')
-# stanza.download('de')
-
 def stanza_label(mail: str):
-    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu = False)
-    #doc = nlp(mail)
-    doc = nlp("Barack Obama was born in Hawaii. He was elected president in 2008.")
+    if not os.path.isdir("data"):
+        os.mkdir("data")
+    stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
+    stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
+    stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
+
+    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
+    doc = nlp(mail)
 
     for token in doc.ents:
-        print(token.text, token.type)
         if token.type == "PER":
-            print("PERSONNNEEEEE")
+            mail = re.sub(token.text, ANONYME, mail)
         if token.type == "LOC":
-            print("Localisation")
-
-    #print(doc.ents)
-stanza_label("hello")
+            mail = re.sub(token.text, ANONYME, mail)
+    return mail
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
@@ -167,17 +165,18 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     level_of_cleaning = my_args.level
 
     if level_of_cleaning == 1:
+        mail = stanza_label(mail)
         # catch phone number
         # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
         results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
         for result in results:
             mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
 
-        #Delete all number in mail
+        # Delete all number in mail
         results = re.findall(NUMERO, mail, re.IGNORECASE)
         for result in results:
             mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
-        
+
         # Catch special cases (lines that starts with 'de:','à:'...)
         result = re.search(FROM_RE, mail, re.IGNORECASE)
         if result:
@@ -211,13 +210,13 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
         if result:
             mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
-                        result.group() + ANONYME + "\n", mail)
+                          result.group() + ANONYME + "\n", mail)
 
-    if level_of_cleaning == 2 :
+    if level_of_cleaning == 2:
 
         #Delete all number in mail
         mail = re.sub("{}".format(NUMERO), RANDOM_NUMBER, mail)
-        
+
         #Delete every word with a upper case
         mail = re.sub("{}".format(MAJUSCULE_TEXT), ANONYME, mail)
 
