@@ -164,7 +164,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     level_of_cleaning = my_args.level
 
     if level_of_cleaning == 1:
-        nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
+        nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner')
         mail = stanza_label(mail, nlp)
         # catch phone number Since hash can contain a suite of characteres very similar to phone number, it's better
         # to start with phone_number
