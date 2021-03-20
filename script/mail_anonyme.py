@@ -138,11 +138,13 @@ def stanza_label(mail: str):
 
     for token in doc.ents:
         print(token.text, token.type)
-        if token == "PER":
+        if token.type == "PER":
             print("PERSONNNEEEEE")
+        if token.type == "LOC":
+            print("Localisation")
 
     #print(doc.ents)
-#stanza_label("hello")k
+stanza_label("hello")
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
