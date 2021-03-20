@@ -31,7 +31,7 @@ END_OF_MAIL = r"(cordialement|cdt|amicalement|sincèrement|sincère salutation|b
 ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
 ENCODE_WRITE = 'utf8'
-RANDOM_NUMBER = randint(0,9)
+RANDOM_NUMBER = str(randint(0,9))
 ENCODE_READ = 'cp1252'
 
 # Don't edit bellow
@@ -45,7 +45,7 @@ PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,1
 TO_RE = r"(à\s*:)([^\n]*)"
 CC_RE = r"(cc\s*:)([^\n]*)"
 NUMERO = r"[0-9]"
-MAJUSCULE_TEXT = r"[^(?!. ).[^A-Z]]"
+MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
 
 
 def parse() -> argparse.Namespace:
@@ -88,9 +88,9 @@ def parse() -> argparse.Namespace:
                """ par défault, la sortie est un seul fichier appelé output"""
     all_args.add_argument("--out", help=hel)
 
-    hel: str = """Entrez un entier entre 1 et 3 """ \
+    hel: str = """Entrez un entier entre 1 et 2 """ \
                """Choisir le niveau d'anonymisation des mails."""
-    all_args.add_argument("--level", help=hel)
+    all_args.add_argument("--level", help=hel,type=int)
 
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
@@ -128,11 +128,11 @@ def hash_user(user: str):
 
 
 # stanza.download('en')
-# stanza.download('fr')
+#stanza.download('fr')
 # stanza.download('de')
 
 def stanza_label(mail: str):
-    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner')
+    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu = False)
     #doc = nlp(mail)
     doc = nlp("Barack Obama was born in Hawaii. He was elected president in 2008.")
 
@@ -166,7 +166,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     """
     level_of_cleaning = my_args.level
 
-    if level_of_cleaning == 1 :
+    if level_of_cleaning == 1:
         # catch phone number
         # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
         results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
@@ -216,14 +216,10 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     if level_of_cleaning == 2 :
 
         #Delete all number in mail
-        results = re.findall(NUMERO, mail, re.IGNORECASE)
-        for result in results:
-            mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
+        mail = re.sub("{}".format(NUMERO), RANDOM_NUMBER, mail)
         
         #Delete every word with a upper case
-            results = re.findall(MAJUSCULE_TEXT, mail)
-            for result in results:
-                mail = re.sub("{}".format(result), ANONYME, mail)
+        mail = re.sub("{}".format(MAJUSCULE_TEXT), ANONYME, mail)
 
         # Match sensible data in corpus mail
         # match data as monsieur Machin Bidule or Mme. Machine or...
