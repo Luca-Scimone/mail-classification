@@ -14,6 +14,7 @@ import os
 import re
 from typing import TextIO
 import argparse
+from random import *
 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
@@ -28,6 +29,7 @@ ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
 ENCODE_READ = 'utf8'
 ENCODE_WRITE = 'utf8'
+RANDOM_NUMBER = randint(0,9)
 
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
@@ -38,6 +40,8 @@ FROM_RE = r"(de\s*:\s*)([^\n]*)"
 PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,10}[0-9]"
 TO_RE = r"(à\s*:)([^\n]*)"
 CC_RE = r"(cc\s*:)([^\n]*)"
+NUMERO = r"[0-9]"
+MAJUSCULE_TEXT = r"[^(?!. ).[^A-Z]]"
 
 
 def parse() -> argparse.Namespace:
@@ -80,7 +84,9 @@ def parse() -> argparse.Namespace:
                """ par défault, la sortie est un seul fichier appelé output"""
     all_args.add_argument("--out", help=hel)
 
-    args = all_args.parse_args()
+    hel: str = """Entrez un entier entre 1 et 3 """ \
+               """Choisir le niveau d'anonymisation des mails."""
+    all_args.add_argument("--level", help=hel)
 
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
@@ -131,46 +137,70 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     -------
 
     """
-    # catch phone number
-    # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
-    results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
-    for result in results:
-        mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
+    level_of_cleaning = my_args.level
 
-    # Catch special cases (lines that starts with 'de:','à:'...)
-    result = re.search(FROM_RE, mail, re.IGNORECASE)
-    if result:
-        # on récupère le deuxième groupe
-        # on strip pour ne pas hasher les espaces !
-        user_from: str = result.group(2).strip()
-        hash_link[user_from] = hash_user(user_from)
-        mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
+    if level_of_cleaning == 1 :
+        # catch phone number
+        # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
+        results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
+        for result in results:
+            mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
 
-    # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
-    results = re.findall(TO_RE, mail, re.IGNORECASE)
-    for result in results:
-        user_to = result[1].strip()
-        hash_link[user_to] = hash_user(user_to)
-        mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
+        #Delete all number in mail
+        results = re.findall(NUMERO, mail, re.IGNORECASE)
+        for result in results:
+            mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
+        
+        # Catch special cases (lines that starts with 'de:','à:'...)
+        result = re.search(FROM_RE, mail, re.IGNORECASE)
+        if result:
+            # on récupère le deuxième groupe
+            # on strip pour ne pas hasher les espaces !
+            user_from: str = result.group(2).strip()
+            hash_link[user_from] = hash_user(user_from)
+            mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
 
-    # all people in CC are replaced with ANONYME string
-    result = re.search(CC_RE, mail, re.IGNORECASE)
-    if result:
-        cc = result.group(2).strip()
-        mail = re.sub("{}".format(cc), ANONYME, mail)
+        # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
+        results = re.findall(TO_RE, mail, re.IGNORECASE)
+        for result in results:
+            user_to = result[1].strip()
+            hash_link[user_to] = hash_user(user_to)
+            mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
 
-    # replace all mail by anonymous string. Mail in metadata have already been processed.
-    mail = re.sub(REGEX_MAIL, ANONYME, mail)
+        # all people in CC are replaced with ANONYME string
+        result = re.search(CC_RE, mail, re.IGNORECASE)
+        if result:
+            cc = result.group(2).strip()
+            mail = re.sub("{}".format(cc), ANONYME, mail)
 
-    # Match sensible data in corpus mail
-    # match data as monsieur Machin Bidule or Mme. Machine or...
-    mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
+        # replace all mail by anonymous string. Mail in metadata have already been processed.
+        mail = re.sub(REGEX_MAIL, ANONYME, mail)
 
-    # an email often finishes with "cordialement, best regards..." and then the name of the sender.
-    result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
-    if result:
-        mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
-                      result.group() + ANONYME + "\n", mail)
+        # Match sensible data in corpus mail
+        # match data as monsieur Machin Bidule or Mme. Machine or...
+        mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
+
+        # an email often finishes with "cordialement, best regards..." and then the name of the sender.
+        result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
+        if result:
+            mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
+                        result.group() + ANONYME + "\n", mail)
+
+    if level_of_cleaning == 2 :
+
+        #Delete all number in mail
+        results = re.findall(NUMERO, mail, re.IGNORECASE)
+        for result in results:
+            mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
+        
+        #Delete every word with a upper case
+            results = re.findall(MAJUSCULE_TEXT, mail)
+            for result in results:
+                mail = re.sub("{}".format(result), ANONYME, mail)
+
+        # Match sensible data in corpus mail
+        # match data as monsieur Machin Bidule or Mme. Machine or...
+        mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
 
     # Enfin, on affiche les derniers dont on n'est pas sûr
     result = re.findall(NAMES_RE, mail)
