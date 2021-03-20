@@ -131,7 +131,7 @@ def stanza_label(mail: str):
             print("PERSONNNEEEEE")
 
     #print(doc.ents)
-#stanza_label("hello")
+#stanza_label("hello")k
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
