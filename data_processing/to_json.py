@@ -6,22 +6,21 @@ import sys
 if len(sys.argv) != 2:
     print("Wrong arguments.")
     print("Usage: python3 ./data_processing/to_json.py [ENCODING]")
-    exit (1)
+    exit(1)
 
 # The URL containing the data
 encoding = str(sys.argv[1])
 
 
-
 def to_json(raw_path, de, envoye, cc, objet, piece, a, corps):
     data = {'Mail': []}
 
-    cat = [{'Mon déménagement': 0,
-        'Ma relève de compteur': 0,
-        'Je veux faire une réclamation ': 0,
-        'Mon contrat – Mes coordonnées personnelles': 0,
-        'Ma facture – Mon paiement ': 0,
-        'Mon Espace client': 0 }]
+    cat = [{'Déménagement': 0,
+            'Relève de compteur': 0,
+            'Réclamation': 0,
+            'Contrat – Coordonnées personnelles': 0,
+            'Facture – Paiement': 0,
+            'Espace client': 0}]
 
     data['Mail'].append({
         'De': de,
@@ -67,6 +66,8 @@ def parse_mail(filename):
             if objet == "":
                 match = re.search(re.compile(r'(?i)Objet[ ]*:'), line)
                 if match:
+                    if re.search(re.compile(r'(?i)Re[ ]*:'), line):
+                        return "", "", "", "", "", "", ""
                     objet = line[match.end():]
                     continue
 
@@ -97,5 +98,6 @@ if __name__ == "__main__":
             continue
         else:
             de, envoye, cc, objet, piece, a, corps = parse_mail(filename)
-            to_json("./data/mails/" + filename, de,
-                    envoye, cc, objet, piece, a, corps)
+            if corps != "":
+                to_json("./data/mails/" + filename, de,
+                        envoye, cc, objet, piece, a, corps)
