@@ -14,6 +14,10 @@ import os
 import re
 from typing import TextIO
 import argparse
+from random import *
+import stanza
+
+# dfd
 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
@@ -26,11 +30,13 @@ END_OF_MAIL = r"(cordialement|cdt|amicalement|sincèrement|sincère salutation|b
 # pas concernés.
 ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
-ENCODE_READ = 'utf8'
 ENCODE_WRITE = 'utf8'
+RANDOM_NUMBER = str(randint(0, 9))
+ENCODE_READ = 'cp1252'
 
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
+ENCODE_WRITE = 'utf8'
 REGEX_MAIL = r'[^\s]*@[^\s]*'
 NAME_RE = r"[A-Z][A-Za-zéàè]+"
 NAMES_RE = r"(?:" + NAME_RE + r"[ ]+){1,3}(?:" + NAME_RE + r")"
@@ -38,6 +44,8 @@ FROM_RE = r"(de\s*:\s*)([^\n]*)"
 PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,10}[0-9]"
 TO_RE = r"(à\s*:)([^\n]*)"
 CC_RE = r"(cc\s*:)([^\n]*)"
+NUMERO = r"[0-9]"
+MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
 
 
 def parse() -> argparse.Namespace:
@@ -80,10 +88,15 @@ def parse() -> argparse.Namespace:
                """ par défault, la sortie est un seul fichier appelé output"""
     all_args.add_argument("--out", help=hel)
 
-    args = all_args.parse_args()
+    hel: str = """Entrez un entier entre 1 et 2 """ \
+               """Choisir le niveau d'anonymisation des mails."""
+    all_args.add_argument("--level", help=hel, type=int)
 
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
+
+    hel: str = """Choisir l'encodage de lecture des fichiers contenant les mails. Encodage par défaut : cp1252."""
+    all_args.add_argument("--readenc", help=hel, default="cp1252")
 
     args = all_args.parse_args()
     return args
@@ -109,9 +122,27 @@ def hash_user(user: str):
     :return: The hash of user in hexadecimal. The algorithm chosen is blake2
     """
     user_h = hashlib.blake2b(digest_size=32)
-    user_utf8 = user.encode(encoding=ENCODE_WRITE)
-    user_h.update(user_utf8)
+    user_encode = user.encode(encoding=ENCODE_WRITE)
+    user_h.update(user_encode)
     return user_h.hexdigest()
+
+
+def stanza_label(mail: str, nlp):
+    # if not os.path.isdir("data"):
+    #    os.mkdir("data")
+    # stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
+    # stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
+    # stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
+
+    doc = nlp(mail)
+
+    for token in doc.ents:
+        if token.type == "PER":
+            mail = re.sub(token.text, ANONYME, mail)
+        if token.type == "LOC":
+            mail = re.sub(token.text, ANONYME, mail)
+    print(mail)
+    return mail
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
@@ -131,46 +162,68 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     -------
 
     """
-    # catch phone number
-    # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
-    results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
-    for result in results:
-        mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
+    level_of_cleaning = my_args.level
 
-    # Catch special cases (lines that starts with 'de:','à:'...)
-    result = re.search(FROM_RE, mail, re.IGNORECASE)
-    if result:
-        # on récupère le deuxième groupe
-        # on strip pour ne pas hasher les espaces !
-        user_from: str = result.group(2).strip()
-        hash_link[user_from] = hash_user(user_from)
-        mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
+    if level_of_cleaning == 1:
+        nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
+        mail = stanza_label(mail, nlp)
 
-    # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
-    results = re.findall(TO_RE, mail, re.IGNORECASE)
-    for result in results:
-        user_to = result[1].strip()
-        hash_link[user_to] = hash_user(user_to)
-        mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
+        # catch phone number Since hash can contain a suite of characteres very similar to phone number, it's better
+        # to start with phone_number
+        results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
+        for result in results:
+            mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
 
-    # all people in CC are replaced with ANONYME string
-    result = re.search(CC_RE, mail, re.IGNORECASE)
-    if result:
-        cc = result.group(2).strip()
-        mail = re.sub("{}".format(cc), ANONYME, mail)
+        # Delete all number in mail
+        results = re.findall(NUMERO, mail, re.IGNORECASE)
+        for result in results:
+            mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
 
-    # replace all mail by anonymous string. Mail in metadata have already been processed.
-    mail = re.sub(REGEX_MAIL, ANONYME, mail)
+        # Catch special cases (lines that starts with 'de:','à:'...)
+        result = re.search(FROM_RE, mail, re.IGNORECASE)
+        if result:
+            # on récupère le deuxième groupe
+            # on strip pour ne pas hasher les espaces !
+            user_from: str = result.group(2).strip()
+            hash_link[user_from] = hash_user(user_from)
+            mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
 
-    # Match sensible data in corpus mail
-    # match data as monsieur Machin Bidule or Mme. Machine or...
-    mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
+        # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
+        results = re.findall(TO_RE, mail, re.IGNORECASE)
+        for result in results:
+            user_to = result[1].strip()
+            hash_link[user_to] = hash_user(user_to)
+            mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
 
-    # an email often finishes with "cordialement, best regards..." and then the name of the sender.
-    result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
-    if result:
-        mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
-                      result.group() + ANONYME + "\n", mail)
+        # all people in CC are replaced with ANONYME string
+        result = re.search(CC_RE, mail, re.IGNORECASE)
+        if result:
+            cc = result.group(2).strip()
+            mail = re.sub("{}".format(cc), ANONYME, mail)
+
+        # replace all mail by anonymous string. Mail in metadata have already been processed.
+        mail = re.sub(REGEX_MAIL, ANONYME, mail)
+
+        # Match sensible data in corpus mail
+        # match data as monsieur Machin Bidule or Mme. Machine or...
+        mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
+
+        # an email often finishes with "cordialement, best regards..." and then the name of the sender.
+        result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
+        if result:
+            mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
+                          result.group() + ANONYME + "\n", mail)
+
+    if level_of_cleaning == 2:
+        # Delete all number in mail
+        mail = re.sub("{}".format(NUMERO), RANDOM_NUMBER, mail)
+
+        # Delete every word with a upper case
+        mail = re.sub("{}".format(MAJUSCULE_TEXT), ANONYME, mail)
+
+        # Match sensible data in corpus mail
+        # match data as monsieur Machin Bidule or Mme. Machine or...
+        mail = re.sub(r'\s+{}{}'.format(CIVILITE, NAMES_RE), ANONYME, mail)
 
     # Enfin, on affiche les derniers dont on n'est pas sûr
     result = re.findall(NAMES_RE, mail)
@@ -180,10 +233,12 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
             print(re.sub(r'\s', " ", maybe_is_name))
     print("\n")
     fd.write(mail)
+
+    # stanza_label(mail)
     return hash_link
 
 
-def process_file(file_input: str, output: str, hash_dict: dict):
+def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
@@ -199,30 +254,42 @@ def process_file(file_input: str, output: str, hash_dict: dict):
     -------
 
     """
-    file_cnt = 0
-
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
+
         lines = f.readlines()
         for line in lines:
-            if re.search(r'de\s*:', line.strip(), re.IGNORECASE):
-                # on traite le mail précédent
-                file_output = open(
-                    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
-                file_cnt = file_cnt + 1
-                hash_dict = process_mail(mail, file_output, hash_dict)
-                mail = ""
-                file_output.close()
+            mail = mail+line
 
-            mail = mail + line
-
-        # On traite le dernier mail
         file_output = open(
             os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+        file_cnt = file_cnt + 1
         hash_dict = process_mail(mail, file_output, hash_dict)
+        mail = ""
         file_output.close()
 
-        return hash_dict
+        #for line in lines:
+        #    if re.search(r'de\s*:', line.strip(), re.IGNORECASE) and file_cnt > 0:
+         #       # on traite le mail précédent
+          #      file_output = open(
+           #         os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+            #    file_cnt = file_cnt + 1
+         #       hash_dict = process_mail(mail, file_output, hash_dict)
+          #      mail = ""
+           #     file_output.close()
+
+          #  mail = mail + line
+
+        # On traite le dernier mail
+        #file_cnt = file_cnt + 1
+        #file_output = open(
+        #    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+        #hash_dict = process_mail(mail, file_output, hash_dict)
+        #file_output.close()
+
+        return hash_dict, file_cnt
 
 
 def main(output: str, fd_secret: TextIO):
@@ -246,30 +313,33 @@ def main(output: str, fd_secret: TextIO):
     check_dependency(my_args)
 
     hash_dict = dict()
+    file_cnt = 0
 
     if my_args.file:
-        hash_dict = process_file(my_args.file, output, hash_dict)
+        hash_dict, file_cnt = process_file(my_args.file, output, hash_dict, file_cnt)
 
     elif my_args.dir and my_args.rec:
         result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(
             my_args.dir) for f in filenames]
         for file in result:
-            hash_dict = process_file(file, output, hash_dict)
+            hash_dict, file_cnt = process_file(file, output, hash_dict, file_cnt)
 
     elif my_args.dir:
         with os.scandir(my_args.dir) as files:
             for file in files:
-                hash_dict = process_file(
-                    os.path.join(file), output, hash_dict)
+                hash_dict, file_cnt = process_file(
+                    os.path.join(file), output, hash_dict, file_cnt)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
 
 
 if __name__ == "__main__":
-    is_file = 0
 
     my_args = parse()
+
+    if my_args.readenc:
+        ENCODE_READ = my_args.readenc
 
     if my_args.out:
         if os.path.islink(my_args.out) or os.path.isfile(my_args.out):
@@ -281,7 +351,8 @@ if __name__ == "__main__":
             print("Path error with --out option. Does the directory exist ?")
             exit(1)
     else:
-        output = open("output", mode='w', encoding=ENCODE_WRITE)
+        # default folder for output mails
+        output = "output"
 
     fid_secret = open("secret", mode='w', encoding=ENCODE_WRITE)
 

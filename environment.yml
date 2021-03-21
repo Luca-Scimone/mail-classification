@@ -11,7 +11,8 @@ dependencies:
   - conda-forge::wordcloud
   - jupyterlab
   - prompt_toolkit
-  - ipython
+  - ipython = 7.10.0
+  #- stanfordnlp::stanza
   - tornado
   - numpy
   - spacy
