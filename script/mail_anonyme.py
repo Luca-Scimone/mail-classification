@@ -17,8 +17,8 @@ import argparse
 from random import *
 import stanza
 
-#dfd
- 
+# dfd
+
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
 
@@ -31,7 +31,7 @@ END_OF_MAIL = r"(cordialement|cdt|amicalement|sincèrement|sincère salutation|b
 ANONYME = ' anonyme-anonyme '
 ANONYME_NUMBER = "anonyme_number"
 ENCODE_WRITE = 'utf8'
-RANDOM_NUMBER = randint(0,9)
+RANDOM_NUMBER = str(randint(0, 9))
 ENCODE_READ = 'cp1252'
 
 # Don't edit bellow
@@ -45,7 +45,7 @@ PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,1
 TO_RE = r"(à\s*:)([^\n]*)"
 CC_RE = r"(cc\s*:)([^\n]*)"
 NUMERO = r"[0-9]"
-MAJUSCULE_TEXT = r"[^(?!. ).[^A-Z]]"
+MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
 
 
 def parse() -> argparse.Namespace:
@@ -88,9 +88,9 @@ def parse() -> argparse.Namespace:
                """ par défault, la sortie est un seul fichier appelé output"""
     all_args.add_argument("--out", help=hel)
 
-    hel: str = """Entrez un entier entre 1 et 3 """ \
+    hel: str = """Entrez un entier entre 1 et 2 """ \
                """Choisir le niveau d'anonymisation des mails."""
-    all_args.add_argument("--level", help=hel)
+    all_args.add_argument("--level", help=hel, type=int)
 
     hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
     all_args.add_argument("--verbose", help=hel, action="store_true")
@@ -127,24 +127,22 @@ def hash_user(user: str):
     return user_h.hexdigest()
 
 
-# stanza.download('en')
-# stanza.download('fr')
-# stanza.download('de')
+def stanza_label(mail: str, nlp):
+    # if not os.path.isdir("data"):
+    #    os.mkdir("data")
+    # stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
+    # stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
+    # stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
 
-def stanza_label(mail: str):
-    nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner')
-    #doc = nlp(mail)
-    doc = nlp("Barack Obama was born in Hawaii. He was elected president in 2008.")
+    doc = nlp(mail)
 
     for token in doc.ents:
-        print(token.text, token.type)
         if token.type == "PER":
-            print("PERSONNNEEEEE")
+            mail = re.sub(token.text, ANONYME, mail)
         if token.type == "LOC":
-            print("Localisation")
-
-    #print(doc.ents)
-stanza_label("hello")
+            mail = re.sub(token.text, ANONYME, mail)
+    print(mail)
+    return mail
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
@@ -166,18 +164,21 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     """
     level_of_cleaning = my_args.level
 
-    if level_of_cleaning == 1 :
-        # catch phone number
-        # Since hash can contain a suite of characteres very similar to phone number, it's better to start with phone_number
+    if level_of_cleaning == 1:
+        nlp = stanza.Pipeline(lang='fr', processors='tokenize,ner', use_gpu=False)
+        mail = stanza_label(mail, nlp)
+
+        # catch phone number Since hash can contain a suite of characteres very similar to phone number, it's better
+        # to start with phone_number
         results = re.findall(PHONE_NUMBER_RE, mail, re.IGNORECASE)
         for result in results:
             mail = re.sub("{}".format(result), ANONYME_NUMBER, mail)
 
-        #Delete all number in mail
+        # Delete all number in mail
         results = re.findall(NUMERO, mail, re.IGNORECASE)
         for result in results:
             mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
-        
+
         # Catch special cases (lines that starts with 'de:','à:'...)
         result = re.search(FROM_RE, mail, re.IGNORECASE)
         if result:
@@ -211,19 +212,14 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         result = re.search(END_OF_MAIL, mail, re.IGNORECASE)
         if result:
             mail = re.sub(r"{}{}".format(result.group(), NAMES_RE),
-                        result.group() + ANONYME + "\n", mail)
+                          result.group() + ANONYME + "\n", mail)
 
-    if level_of_cleaning == 2 :
+    if level_of_cleaning == 2:
+        # Delete all number in mail
+        mail = re.sub("{}".format(NUMERO), RANDOM_NUMBER, mail)
 
-        #Delete all number in mail
-        results = re.findall(NUMERO, mail, re.IGNORECASE)
-        for result in results:
-            mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
-        
-        #Delete every word with a upper case
-            results = re.findall(MAJUSCULE_TEXT, mail)
-            for result in results:
-                mail = re.sub("{}".format(result), ANONYME, mail)
+        # Delete every word with a upper case
+        mail = re.sub("{}".format(MAJUSCULE_TEXT), ANONYME, mail)
 
         # Match sensible data in corpus mail
         # match data as monsieur Machin Bidule or Mme. Machine or...
@@ -242,7 +238,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     return hash_link
 
 
-def process_file(file_input: str, output: str, hash_dict: dict):
+def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
@@ -258,29 +254,42 @@ def process_file(file_input: str, output: str, hash_dict: dict):
     -------
 
     """
-    file_cnt = 0
     with open(file_input, encoding=ENCODE_READ) as f:
         mail = ""
+
         lines = f.readlines()
         for line in lines:
-            if re.search(r'de\s*:', line.strip(), re.IGNORECASE) and file_cnt > 0:
-                # on traite le mail précédent
-                file_output = open(
-                    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
-                file_cnt = file_cnt + 1
-                hash_dict = process_mail(mail, file_output, hash_dict)
-                mail = ""
-                file_output.close()
+            mail = mail+line
 
-            mail = mail + line
-
-        # On traite le dernier mail
         file_output = open(
             os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+        file_cnt = file_cnt + 1
         hash_dict = process_mail(mail, file_output, hash_dict)
+        mail = ""
         file_output.close()
 
-        return hash_dict
+        #for line in lines:
+        #    if re.search(r'de\s*:', line.strip(), re.IGNORECASE) and file_cnt > 0:
+         #       # on traite le mail précédent
+          #      file_output = open(
+           #         os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+
+            #    file_cnt = file_cnt + 1
+         #       hash_dict = process_mail(mail, file_output, hash_dict)
+          #      mail = ""
+           #     file_output.close()
+
+          #  mail = mail + line
+
+        # On traite le dernier mail
+        #file_cnt = file_cnt + 1
+        #file_output = open(
+        #    os.path.join(output, "mail_" + str(file_cnt)), mode='w', encoding=ENCODE_WRITE)
+        #hash_dict = process_mail(mail, file_output, hash_dict)
+        #file_output.close()
+
+        return hash_dict, file_cnt
 
 
 def main(output: str, fd_secret: TextIO):
@@ -304,21 +313,22 @@ def main(output: str, fd_secret: TextIO):
     check_dependency(my_args)
 
     hash_dict = dict()
+    file_cnt = 0
 
     if my_args.file:
-        hash_dict = process_file(my_args.file, output, hash_dict)
+        hash_dict, file_cnt = process_file(my_args.file, output, hash_dict, file_cnt)
 
     elif my_args.dir and my_args.rec:
         result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(
             my_args.dir) for f in filenames]
         for file in result:
-            hash_dict = process_file(file, output, hash_dict)
+            hash_dict, file_cnt = process_file(file, output, hash_dict, file_cnt)
 
     elif my_args.dir:
         with os.scandir(my_args.dir) as files:
             for file in files:
-                hash_dict = process_file(
-                    os.path.join(file), output, hash_dict)
+                hash_dict, file_cnt = process_file(
+                    os.path.join(file), output, hash_dict, file_cnt)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
