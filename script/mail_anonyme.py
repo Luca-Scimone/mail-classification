@@ -42,19 +42,20 @@ ENCODE_READ = 'cp1252'
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
 ENCODE_WRITE = 'utf8'
-REGEX_MAIL = r'[^\s]*@[^\s]*'
+REGEX_MAIL = r'[^\s]*@[\S]*'
 NAME_RE = r"[A-Z][A-Za-zéàè]+"
 NAMES_RE = r"(?:" + NAME_RE + r"[ ]+){1,3}(?:" + NAME_RE + r")"
-FROM_RE = r"(de\s*:\s*)([^\n]*)"
+FROM_RE = r"(de\s*:\s*)([^{}]*)".format(os.linesep)
 PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,10}[0-9]"
-TO_RE = r"(à\s*:)([^\n]*)"
-CC_RE = r"(cc\s*:)([^\n]*)"
+TO_RE = r"(à\s*:)([^{}]*)".format(os.linesep)
+CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
 MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
 
 NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
 NLP_EN = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
 NLP_DE = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
+
 
 def parse() -> argparse.Namespace:
     """
@@ -188,21 +189,24 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         # on récupère le deuxième groupe
         # on strip pour ne pas hasher les espaces !
         user_from: str = result.group(2).strip()
-        hash_link[user_from] = hash_user(user_from)
-        mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
+        if user_from != "":
+            hash_link[user_from] = hash_user(user_from)
+            mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
 
     # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
     results = re.findall(TO_RE, mail, re.IGNORECASE)
     for result in results:
         user_to = result[1].strip()
-        hash_link[user_to] = hash_user(user_to)
-        mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
+        if user_to != "":
+            hash_link[user_to] = hash_user(user_to)
+            mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
 
     # all people in CC are replaced with ANONYME string
     result = re.search(CC_RE, mail, re.IGNORECASE)
     if result:
         cc = result.group(2).strip()
-        mail = re.sub("{}".format(cc), ANONYME, mail)
+        if cc != "":
+            mail = re.sub("{}".format(cc), ANONYME, mail)
 
     # replace all mail by anonymous string. Mail in metadata have already been processed.
     mail = re.sub(REGEX_MAIL, ANONYME_MAIL, mail)
@@ -249,6 +253,7 @@ def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
                     file_output = open(
                         os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
                         encoding=ENCODE_WRITE)
+                    file_output.write(file_input + '\n')
                     hash_dict = process_mail(mail, file_output, hash_dict)
                     mail = ""
                     file_output.close()
@@ -259,6 +264,7 @@ def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
         # On traite le dernier mail
         file_output = open(
             os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w', encoding=ENCODE_WRITE)
+        file_output.write(file_input + '\n')
         hash_dict = process_mail(mail, file_output, hash_dict)
         file_output.close()
 
