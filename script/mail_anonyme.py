@@ -52,9 +52,22 @@ CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
 MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
 
-NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
-NLP_EN = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
-NLP_DE = stanza.Pipeline(lang="fr", processors='tokenize,ner', use_gpu=True, pos_batch_size=3000)
+
+if not os.path.isdir("data"):
+    os.mkdir("data")
+
+if not os.path.isdir(os.path.join("data", "en")):
+    stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
+
+if not os.path.isdir(os.path.join("data", "fr")):
+    stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
+
+if not os.path.isdir(os.path.join("data", "de")):
+    stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
+
+NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_EN = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_DE = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
 
 
 def parse() -> argparse.Namespace:
@@ -123,17 +136,6 @@ def hash_user(user: str):
 
 
 def stanza_label(mail: str, nlp):
-    if not os.path.isdir("data"):
-        os.mkdir("data")
-
-    if not os.path.isdir(os.path.join("data", "en")):
-        stanza.download('en', model_dir=os.path.join(os.getcwd(), "data"))
-
-    if not os.path.isdir(os.path.join("data", "fr")):
-        stanza.download('fr', model_dir=os.path.join(os.getcwd(), "data"))
-
-    if not os.path.isdir(os.path.join("data", "de")):
-        stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
 
     doc = nlp(mail)
 
