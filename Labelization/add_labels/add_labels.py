@@ -10,7 +10,7 @@ pip install fast-autocomplete[levenshtein]
 """
 
 import os
-import time
+import shutil
 import sys
 import codecs
 import json
@@ -51,6 +51,20 @@ class color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
+
+"""
+Used Directories
+"""
+
+
+data_directory = os.path.join("data", "mails")
+checkpoint_directory = os.path.join("data", "labeling_checkpoint")
+output_directory = os.path.join("data", "labeled_data")
+output_directory_labeled = os.path.join(
+    os.path.join("data", "labeled_data"), "labeled")
+output_directory_unlabeled = os.path.join(
+    os.path.join("data", "labeled_data"), "unlabeled")
 
 
 """
@@ -128,6 +142,7 @@ def autocompletion(labels):
 
         if (c == repr('\x03')):  # aborting program on CNTRl-C
             print("\n\nAborted !")
+            shutil.rmtree(output_directory)
             exit(0)
         if (c == repr('\x1a')):  # removing label on CNTRL-Z
             if len(labels):
@@ -190,8 +205,8 @@ Writes the label choice of the user into a json file.
 """
 
 
-def write_label(filename, data_directory, labeled_data_directory, labels):
-    f = open(data_directory + filename, "r", encoding=encoding)
+def write_label(filename, labels):
+    f = open(os.path.join(data_directory, filename), "r", encoding=encoding)
     json_object = json.load(f)
     f.close()
 
@@ -219,9 +234,53 @@ def write_label(filename, data_directory, labeled_data_directory, labels):
             print("writing label espace client into", filename)
             json_object["Mail"][0]["Catégorie"][0]['Espace client'] = 1
 
-    f = open(labeled_data_directory + filename, "w")
+    f = open(os.path.join(checkpoint_directory, filename), "w")
     json.dump(json_object, f, ensure_ascii=False, indent=True)
     f.close()
+
+
+"""
+Returns true or false, depending if a mail has any label or not
+"""
+
+
+def mail_labeled(path):
+    out = 0
+
+    f = open(path, "r", encoding=encoding)
+    json_object = json.load(f)
+    f.close()
+
+    out += json_object["Mail"][0]["Catégorie"][0]['Déménagement']
+    out += json_object["Mail"][0]["Catégorie"][0]['Relève de compteur']
+    out += json_object["Mail"][0]["Catégorie"][0]['Réclamation']
+    out += json_object["Mail"][0]["Catégorie"][0]['Contrat – Coordonnées personnelles']
+    out += json_object["Mail"][0]["Catégorie"][0]['Facture – Paiement']
+    out += json_object["Mail"][0]["Catégorie"][0]['Espace client']
+
+    return out > 0
+
+
+"""
+This functions is called after the labelization is done.
+
+If a mail was labeled, it will be moved to the labeled directory
+If a mail was not labeled, it will be moved to the unlabeled directory
+"""
+
+
+def labelization_done():
+    print("All mails were labeled ! Saving labelization output...")
+    for filename in os.listdir(checkpoint_directory):
+        if filename == "." or filename == "..":
+            continue
+        else:
+            if mail_labeled(os.path.join(checkpoint_directory, filename)):
+                shutil.move(os.path.join(checkpoint_directory, filename),
+                            os.path.join(output_directory_labeled, filename))
+            else:
+                shutil.move(os.path.join(checkpoint_directory, filename), os.path.join(
+                    output_directory_unlabeled, filename))
 
 
 """
@@ -235,31 +294,69 @@ For each mail, there are three important functions:
 """
 
 
-def parse_mails(data_directory, labeled_data_directory):
+def parse_mails():
     for filename in os.listdir(data_directory):
         if filename == "." or filename == "..":
             continue
-        if os.path.exists(labeled_data_directory + filename):
+        if os.path.exists(os.path.join(checkpoint_directory, filename)):
             print("Mail", filename, "already labeled.")
             continue
         else:
-            read_mail(data_directory + filename)
+            read_mail(os.path.join(data_directory, filename))
             labels = input_label()
-            write_label(filename, data_directory,
-                        labeled_data_directory, labels)
+            write_label(filename, labels)
+    labelization_done()
+    shutil.rmtree(checkpoint_directory)
 
 
-if __name__ == "__main__":
-    data_directory = "./data/mails/"
-    directory = "./data/labeled_mails/"
+"""
+Creates a directory
+"""
 
+
+def mkdir(path):
     try:
-        os.mkdir(directory)
+        os.mkdir(path)
     except OSError:
-        print("Creation of the directory %s failed" % directory)
+        print("Creation of the directory %s failed" % path)
 
+
+"""
+Checks the status of the directory of the user. Avoids any earasements.
+"""
+
+
+def data_directory_status():
     if not os.path.exists(data_directory):
         print("error: no data to parse (path: ./data/mails does not exists)")
         exit(1)
 
-    parse_mails(data_directory, directory)
+    if os.path.exists(output_directory):
+        print("An output directory of this script already exists.")
+        i = input("Do you wish to erase it ? [Y/n]")
+
+        if i == "Y" or i == "y":
+            shutil.rmtree(output_directory)
+            print("Removed previous label directory.")
+            print("Recreating directory")
+            mkdir(output_directory)
+            mkdir(output_directory_labeled)
+            mkdir(output_directory_unlabeled)
+        else:
+            print("\n\nAborted !")
+            exit(0)
+    else:
+        mkdir(output_directory)
+        mkdir(output_directory_labeled)
+        mkdir(output_directory_unlabeled)
+
+    if os.path.exists(checkpoint_directory):
+        print("Using previous checkpoint")
+    else:
+        mkdir(checkpoint_directory)
+
+
+if __name__ == "__main__":
+
+    data_directory_status()
+    parse_mails()

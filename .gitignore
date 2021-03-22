@@ -1,6 +1,6 @@
 data/raw_mails/
 data/mails/
-data/labeled_mails/
+data/labeled_data/
 output
 secret
 file1.csv
