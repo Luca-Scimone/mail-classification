@@ -1,0 +1,25 @@
+{
+ "Mail": [
+  {
+   "De": "",
+   "Envoyé": "",
+   "À": "",
+   "Cc": "",
+   "Objet": "",
+   "Pièces jointes": "",
+   "Corps": "Email d'origine : Re  votre demande .msg\n\nbonjour voici plus de semaines que ce mail m'a ete envoye nous avons bien receptionne une petite compensation mais sincerement je ne sais pas a quoi ca correspond ni si cela couvre le prejudice d'autre part notre consommation a fortement diminuee depuis l'installation d'un poele a granules je pense qu'il serait interessant d'ajuster notre mensualite en fonction bien a vous cordialement le mai a accueil mailto a ecrit bonjour monsieur nous faisons suite a votre demande et vous confirmons que regularisation est en cours vous allez dans les prochains jours receptionner un courrier de regularisation par voie postale nous restons bien entendu a votre disposition pour tous renseignements complementaires cordialement guete votre conseiller si vous n'imprimez ce mail qu'en cas de necessite vous contribuerez a preservation de l'environnement energies sa rue du marais vert cedex rcs b email mailto reference client commentaires du client bonjour nous avons remarque courant que le relais de notre compteur electrique etait casse et que toute notre consommation passait en heures pleines un technicien est venu nous installer un nouveau compteur le et depuis nous n'avons plus aucunes nouvelles de votre part nous avons un document avec les derniers releves de compteur que nous avons fait en en avezvous besoin pour faire regularisation d'apres nos releves le relais a du s'arreter de fonctionner pendant le mois d'octobre il y a donc toute periode d'octobre a qu'il faudrait regulariser merci d'avance pour votre aide cordialement et ",
+   "Catégorie": [
+    {
+     "Mon déménagement": 0,
+     "Ma relève de compteur": 0,
+     "Je veux faire une réclamation ": 0,
+     "Mon contrat – Mes coordonnées personnelles": 0,
+     "Ma facture – Mon paiement ": 0,
+     "Mon Espace client": 0,
+     "Déménagement": 1,
+     "Facture – Paiement": 1
+    }
+   ]
+  }
+ ]
+}

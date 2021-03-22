@@ -1,0 +1,24 @@
+{
+ "Mail": [
+  {
+   "De": "",
+   "Envoyé": "",
+   "À": "",
+   "Cc": "",
+   "Objet": "",
+   "Pièces jointes": "",
+   "Corps": "Email d'origine : Formulaire de contact   Divers (28).msg\n\nemail envoye automatiquement suite a une demande sur le site energies madame telephone objet divers adresse electronique message bonjour je vous fais part du courrier concernant ma factue d'un montant de environ euro je vous regulariserai a compter du juillet pourriez vous en tenir compte energies social rue du marais vert cedex ",
+   "Catégorie": [
+    {
+     "Mon déménagement": 0,
+     "Ma relève de compteur": 0,
+     "Je veux faire une réclamation ": 0,
+     "Mon contrat – Mes coordonnées personnelles": 0,
+     "Ma facture – Mon paiement ": 0,
+     "Mon Espace client": 0,
+     "Déménagement": 1
+    }
+   ]
+  }
+ ]
+}
