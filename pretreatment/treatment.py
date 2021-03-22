@@ -192,9 +192,10 @@ def init():
                 corps = msg['Corps']
                 obj = msg['Objet']
                 cat = msg['Catégorie']
+        
             Objet_mail.append(obj)
             Corps_mail.append(corps)
-            Label_mail.append(cat)
+            Label_mail.append([list(label.values()) for label in cat][0])
             temp = obj + corps
             Mails.append(temp)
 

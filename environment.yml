@@ -9,6 +9,7 @@ dependencies:
   - conda-forge::gdown
   - conda-forge::pyldavis
   - conda-forge::wordcloud
+  - conda-forge::langdetect
   - jupyterlab
   - prompt_toolkit
   - ipython = 7.10.0
@@ -24,3 +25,4 @@ dependencies:
   - pillow
   - seaborn
   - scikit-learn
+  - readchar
