@@ -1,6 +1,7 @@
 data/raw_mails/
 data/mails/
 data/labeled_data/
+data/labeling_checkpoint/
 output
 secret
 file1.csv

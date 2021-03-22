@@ -141,6 +141,8 @@ def autocompletion(labels):
         c = repr(readchar.readchar())
 
         if (c == repr('\x03')):  # aborting program on CNTRl-C
+            print(
+                color.PURPLE + "Saved labeling progress in ./data/labeling_checkpoints" + color.END)
             print("\n\nAborted !")
             shutil.rmtree(output_directory)
             exit(0)
