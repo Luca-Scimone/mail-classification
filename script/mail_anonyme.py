@@ -17,7 +17,6 @@ from random import *
 import stanza
 from langdetect import detect
 
-# dfd
 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 # CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
@@ -48,7 +47,7 @@ PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,1
 TO_RE = r"(à\s*:)([^{}]*)".format(os.linesep)
 CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
-MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
+MAJUSCULE_TEXT = r"[ ][A-Z][A-Za-zéàè]+([ ]|[\n])"
 
 if not os.path.isdir("data"):
     os.mkdir("data")
