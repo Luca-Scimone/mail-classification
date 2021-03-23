@@ -16,23 +16,22 @@ sns.set()  # use seaborn plotting style
 import importlib.util
 
 spec = importlib.util.spec_from_file_location(
-    "treatement", os.path.abspath(os.getcwd()) + "/pretreatment/treatment.py")
-pretreatement = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(pretreatement)
-mails = pretreatement.mails_data()
+    "WordRepresentation", os.path.abspath(os.getcwd()) + "/pretreatment/WordRepresentation.py")
+WordRepresentation = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(WordRepresentation)
+wr = WordRepresentation.WordRepresentation()
 
 directory = "./data/mails/"
 
 # Load the dataset
-data = mails.vector_of_mails()  # Get the text categories
+data = wr.data
 
 # Get the label of each mail
-mails_labels = mails.get_mails_label()
+_, mails_labels = wr.init_unique_labels()
 
-liste_labels = ["Déménagement","Relève_compteur","Réclamation", "Contrat", "Facture","Espace_Client"]
+liste_labels = wr.label_names
 
-mails_nom = mails.get_mails_nom()
-print(mails_nom)
+mails_nom = wr.pretreatement_obj.get_mails_nom()
 
 # define the training set 
 # 30% training 70% test
@@ -45,6 +44,7 @@ print("Number of training samples ")
 print(len(train_data))
 print("Number of test samples ")
 print(len(test_data))
+
 
 # Build the model
 model = make_pipeline(TfidfVectorizer(), MultinomialNB())  # Train the model using the training data
