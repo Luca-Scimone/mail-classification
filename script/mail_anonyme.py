@@ -9,7 +9,6 @@ Pour un directory : python3 mail_anonyme.py --dir d --rec
 """
 
 import hashlib
-from io import StringIO
 import os
 import re
 from typing import TextIO
@@ -18,7 +17,6 @@ from random import *
 import stanza
 from langdetect import detect
 
-# dfd
 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 # CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
@@ -35,7 +33,6 @@ ANONYME_LOCALISATION = ' anonyme-localisation '
 ANONYME_NUMBER = " anonyme_number "
 ANONYME_MAIL = " anonyme_mail "
 
-ENCODE_WRITE = 'utf8'
 RANDOM_NUMBER = str(randint(0, 9))
 ENCODE_READ = 'cp1252'
 
@@ -50,8 +47,7 @@ PHONE_NUMBER_RE = r"[+]?[(]?[0-9]{2}[)]?[-\s.]?[0-9]?[-\s.]?(?:[0-9][-\s.]?){6,1
 TO_RE = r"(à\s*:)([^{}]*)".format(os.linesep)
 CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
-MAJUSCULE_TEXT = r"^(?!. ).[A-Z][A-Za-zéàè]+"
-
+MAJUSCULE_TEXT = r"[ ][A-Z][A-Za-zéàè]+([ ]|[\n])"
 
 if not os.path.isdir("data"):
     os.mkdir("data")
@@ -66,8 +62,8 @@ if not os.path.isdir(os.path.join("data", "de")):
     stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
 
 NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_EN = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_DE = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
 
 
 def parse() -> argparse.Namespace:
@@ -136,14 +132,14 @@ def hash_user(user: str):
 
 
 def stanza_label(mail: str, nlp):
-
     doc = nlp(mail)
 
     for token in doc.ents:
-        if token.type == "PER":
+        if token.type == "PER" or token.type == "PERSON":
             mail = re.sub(token.text, ANONYME_PERSONNE, mail)
         if token.type == "LOC":
             mail = re.sub(token.text, ANONYME_LOCALISATION, mail)
+
     return mail
 
 
@@ -296,6 +292,7 @@ def main(fd_secret: TextIO):
 
     hash_dict = dict()
     file_cnt = 0
+    output: str = ""
 
     if my_args.readenc:
         ENCODE_READ = my_args.readenc

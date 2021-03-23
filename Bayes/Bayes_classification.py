@@ -47,5 +47,14 @@ print(len(test_data))
 
 # Build the model
 model = make_pipeline(TfidfVectorizer(), MultinomialNB())  # Train the model using the training data
-model.fit(train_data.data, train_data.target)  # Predict the categories of the test data
-predicted_categories = model.predict(test_data.data)
+model.fit(train_data, mails_labels[0:a])  # Predict the categories of the test data
+predicted_categories = model.predict(test_data)
+print(np.array(mails_labels))
+
+# plot the confusion matrix
+mat = confusion_matrix(test_data, predicted_categories)
+sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=mails_labels,yticklabels=mails_labels)
+plt.xlabel("true labels")
+plt.ylabel("predicted label")
+plt.show()
+#print("The accuracy is {}".format(accuracy_score(mails_labels, predicted_categories)))
