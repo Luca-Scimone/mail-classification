@@ -119,6 +119,10 @@ def read_mail(filename):
             corps = msg['Corps']
             obj = msg['Objet']
 
+        if "ce message est protege par les regles relatives au secret des correspondances" in corps:
+            idx = corps.find("ce message est protege par les regles relatives au secret des correspondances")
+            corps = corps[:idx]
+
         print(80*'=')
         print(color.BOLD + color.RED + obj + color.END + color.END)
         print(80*'=')
