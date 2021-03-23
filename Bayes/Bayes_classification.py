@@ -53,8 +53,8 @@ predicted_categories = model.predict(test_data)
 print(np.array(mails_labels))
 
 # plot the confusion matrix
-mat = confusion_matrix(test_data, predicted_categories)
-sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=mails_labels,yticklabels=mails_labels)
+mat = confusion_matrix(mails_labels[a:], predicted_categories)
+sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=liste_labels,yticklabels=liste_labels)
 plt.xlabel("true labels")
 plt.ylabel("predicted label")
 plt.show()
