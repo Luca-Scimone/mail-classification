@@ -27,8 +27,9 @@ directory = "./data/mails/"
 data = mails.vector_of_mails()  # Get the text categories
 
 # Get the label of each mail
-# (pas encore disponible puisque mail non labélisé)
 mails_labels = mails.get_mails_label()
+
+liste_labels = ["Déménagement","Relève_compteur","Réclamation", "Contrat", "Facture","Espace_Client"]
 
 mails_nom = mails.get_mails_nom()
 print(mails_nom)
