@@ -45,7 +45,7 @@ class WordRepresentation:
         self.label_names = ['Déménagement', 'Relève de compteur', 'Réclamation',
                              'Contrat – Coordonnées personnelles', 'Facture – Paiement', 'Espace client']
         self.labels =  self.pretreatement_obj.get_mails_label()
-        self.unique_labels = None
+        self.unique_labels, self.unique_nammed_labels = None, None
 
     def count(self):
         """
@@ -148,7 +148,7 @@ class WordRepresentation:
         if not self.unique_labels == None:
             return self.unique_labels
 
-        self.unique_labels = []
+        self.unique_labels, self.unique_nammed_labels = [],[]
         label_exists = 1 # Making sure all mails are labeled
 
         for vect in self.labels:
@@ -158,7 +158,8 @@ class WordRepresentation:
                 label_exists = 0
                 if label:
                     self.unique_labels.append(i)
+                    self.unique_nammed_labels.append(self.label_names[i])
                     label_exists = 1
                     break
 
-        return self.unique_labels
+        return self.unique_labels, self.unique_nammed_labels

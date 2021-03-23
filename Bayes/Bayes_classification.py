@@ -16,22 +16,22 @@ sns.set()  # use seaborn plotting style
 import importlib.util
 
 spec = importlib.util.spec_from_file_location(
-    "treatement", os.path.abspath(os.getcwd()) + "/pretreatment/treatment.py")
-pretreatement = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(pretreatement)
-mails = pretreatement.mails_data()
+    "WordRepresentation", os.path.abspath(os.getcwd()) + "/pretreatment/WordRepresentation.py")
+WordRepresentation = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(WordRepresentation)
+wr = WordRepresentation.WordRepresentation()
 
 directory = "./data/mails/"
 
 # Load the dataset
-data = mails.vector_of_mails()  # Get the text categories
+data = wr.data
 
 # Get the label of each mail
-# (pas encore disponible puisque mail non labélisé)
-mails_labels = mails.get_mails_label()
+_, mails_labels = wr.init_unique_labels()
 
-mails_nom = mails.get_mails_nom()
-print(mails_nom)
+liste_labels = wr.label_names
+
+mails_nom = wr.pretreatement_obj.get_mails_nom()
 
 # define the training set 
 # 30% training 70% test
@@ -45,6 +45,7 @@ print(len(train_data))
 print("Number of test samples ")
 print(len(test_data))
 
+
 # Build the model
 model = make_pipeline(TfidfVectorizer(), MultinomialNB())  # Train the model using the training data
 model.fit(train_data, mails_labels[0:a])  # Predict the categories of the test data
@@ -52,8 +53,8 @@ predicted_categories = model.predict(test_data)
 print(np.array(mails_labels))
 
 # plot the confusion matrix
-mat = confusion_matrix(test_data, predicted_categories)
-sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=mails_labels,yticklabels=mails_labels)
+mat = confusion_matrix(mails_labels[a:], predicted_categories)
+sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=liste_labels,yticklabels=liste_labels)
 plt.xlabel("true labels")
 plt.ylabel("predicted label")
 plt.show()
