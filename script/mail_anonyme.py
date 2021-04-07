@@ -7,7 +7,7 @@ sont hashés. La correspondance strinh/hash_string est écrite dans un fichier '
 
 Pour un directory : python3 mail_anonyme.py --dir d --rec
 """
-
+import csv
 import hashlib
 import os
 import re
@@ -16,7 +16,6 @@ import argparse
 from random import *
 import stanza
 from langdetect import detect
-
 
 # ajouter un mot de civilité si non pris en compte. Attention Madame et madame ne sont pas équivalents.
 # CIVILITE = r"(?:madame|Madame|monsieur|Monsieur|mr|Mr|mme|Mme|melle|Mlle|M|m)\s*.\s*"
@@ -34,7 +33,7 @@ ANONYME_NUMBER = " anonyme_number "
 ANONYME_MAIL = " anonyme_mail "
 
 RANDOM_NUMBER = str(randint(0, 9))
-ENCODE_READ = 'cp1252'
+ENCODE_READ = 'utf8'
 
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
@@ -61,9 +60,9 @@ if not os.path.isdir(os.path.join("data", "fr")):
 if not os.path.isdir(os.path.join("data", "de")):
     stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
 
-NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+#NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+#NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+#NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
 
 
 def parse() -> argparse.Namespace:
@@ -100,6 +99,9 @@ def parse() -> argparse.Namespace:
 
     hel: str = """Lire récursivement un dossier. A utiliser avec --dir."""
     all_args.add_argument("--rec", help=hel, action="store_true")
+
+    hel: str = """TOUS les fichiers traités doivent être en csv."""
+    all_args.add_argument("--csv", help=hel, action="store_true")
 
     hel: str = """Entrez un chemin vers un fichier ou un dossier de sortie. Si le chemin est celui d'un dossier,""" \
                """ le script va scinder les mails en plusieurs fichiers.""" \
@@ -145,20 +147,17 @@ def stanza_label(mail: str, nlp):
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict):
     """
-
     This function take a string, split it in sentences and remove from each sentences all confidential data. Finally,
     sentences are written in fd file after removing sensible information.
 
-    Parameters
-    ----------
-    mail : An entire string mail to process. A mail start with "de:Machin" and end with EOF or with another
+    :param mail: An entire string mail to process. A mail start with "de:Machin" and end with EOF or with another
     "de:autre_Machin".
-    fd :It is the file where mails without confidential data are written.
+
+    :param fd: It is the file where mails without confidential data are written.
     hash_link : A dictionary that makes correspondences between hash_string and string.
 
-    Returns A dictionary that makes correspondences between hash_string and string.
-    -------
-
+    :param hash_link:
+    :return:  A dictionary that makes correspondences between hash_string and string.
     """
 
     if mail.strip() == "":
@@ -180,7 +179,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     results = re.findall(NUMERO, mail, re.IGNORECASE)
     for result in results:
         mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
-
+    """
     # Catch special cases (lines that starts with 'de:','à:'...)
     result = re.search(FROM_RE, mail, re.IGNORECASE)
     if result:
@@ -205,7 +204,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         cc = result.group(2).strip()
         if cc != "":
             mail = re.sub("{}".format(cc), ANONYME, mail)
-
+    """
     # replace all mail by anonymous string. Mail in metadata have already been processed.
     mail = re.sub(REGEX_MAIL, ANONYME_MAIL, mail)
 
@@ -216,13 +215,35 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         print("Les mots suivants n'ont pas été anonymisés et pourtant ce sont peut-être des prénoms :")
         for maybe_is_name in result:
             print(re.sub(r'\s', " ", maybe_is_name))
-    print("\n")
+        print("\n")
     fd.write(mail)
 
     return hash_link
 
 
-def process_file(file_input: str, output: str, hash_dict: dict, file_cnt):
+def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
+    with open(file_input, encoding=ENCODE_READ) as csv_f:
+        csv_reader = csv.reader(csv_f)
+        first_line = csv_reader[0]
+        for title in first_line:
+            print(first_line)
+            # if(re.search( r"\s*de", title, re.IGNORECASE))
+        return hash_dict, file_cnt
+
+
+def process_file(file_input: str, output: str, hash_dict: dict, file_cnt, is_csv):
+    if is_csv:
+        hash_dict, file_cnt = process_file_csv(str, str, dict, file_cnt)
+        return hash_dict, file_cnt
+
+    else:
+        hash_dict, file_cnt = process_file_txt(str, str, dict, file_cnt)
+        return hash_dict, file_cnt
+
+    return hash_dict, file_cnt
+
+
+def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
@@ -308,19 +329,19 @@ def main(fd_secret: TextIO):
             os.mkdir("output")
 
     if my_args.file:
-        hash_dict, file_cnt = process_file(my_args.file, output, hash_dict, file_cnt)
+        hash_dict, file_cnt = process_file(my_args.file, output, hash_dict, file_cnt, my_args.csv)
 
     elif my_args.dir and my_args.rec:
         result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(
             my_args.dir) for f in filenames]
         for file in result:
-            hash_dict, file_cnt = process_file(file, output, hash_dict, file_cnt)
+            hash_dict, file_cnt = process_file(file, output, hash_dict, file_cnt, my_args.csv)
 
     elif my_args.dir:
         with os.scandir(my_args.dir) as files:
             for file in files:
                 hash_dict, file_cnt = process_file(
-                    os.path.join(file), output, hash_dict, file_cnt)
+                    os.path.join(file), output, hash_dict, file_cnt, my_args.csv)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
