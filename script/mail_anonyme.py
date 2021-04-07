@@ -33,7 +33,7 @@ ANONYME_NUMBER = " anonyme_number "
 ANONYME_MAIL = " anonyme_mail "
 
 RANDOM_NUMBER = str(randint(0, 9))
-ENCODE_READ = 'utf8'
+ENCODE_READ = 'cp1252'
 
 # Don't edit bellow
 # ---------------------------------------------------------------------------------- #
@@ -48,6 +48,10 @@ CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
 MAJUSCULE_TEXT = r"[ ][A-Z][A-Za-zéàè]+([ ]|[\n])"
 
+NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+
 if not os.path.isdir("data"):
     os.mkdir("data")
 
@@ -59,10 +63,6 @@ if not os.path.isdir(os.path.join("data", "fr")):
 
 if not os.path.isdir(os.path.join("data", "de")):
     stanza.download('de', model_dir=os.path.join(os.getcwd(), "data"))
-
-#NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-#NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-#NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
 
 
 def parse() -> argparse.Namespace:
@@ -222,25 +222,57 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
 
 
 def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
+    titles = []
+
     with open(file_input, encoding=ENCODE_READ) as csv_f:
         csv_reader = csv.reader(csv_f)
-        first_line = csv_reader[0]
+        first_line = next(csv_reader)
+        print(first_line)
         for title in first_line:
-            print(first_line)
-            # if(re.search( r"\s*de", title, re.IGNORECASE))
-        return hash_dict, file_cnt
+            if re.search(r"\s*de", title, re.IGNORECASE):
+                titles.append("de:")
+            elif re.search(r"\s*cc", title, re.IGNORECASE):
+                titles.append("cc:")
+            elif re.search(r"\s*cci", title, re.IGNORECASE):
+                titles.append("cci:")
+            elif re.match(r"\s*a", title, re.IGNORECASE):
+                titles.append("A")
+            elif re.search(r"\s*objet", title, re.IGNORECASE):
+                titles.append("objet:")
+            elif re.search(r"\s*corps", title, re.IGNORECASE):
+                titles.append("corps:")
+            else:
+                titles.append("unknown:")
+        print(titles)
+        mail_cnt = 0
+        for row in csv_reader:
+            print (row)
+            mail = ""
+            for i in range(len(titles)):
+                print(i)
+                print(len(row))
+                mail = mail + titles[i] + row[i]
+                file_output = open(
+                    os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
+                    encoding=ENCODE_WRITE)
+                file_output.write(file_input + '\n')
+
+                hash_dict = process_mail(mail, file_output, hash_dict)
+                mail = ""
+                file_output.close()
+            mail_cnt += 1
+
+        return hash_dict, file_cnt + 1
 
 
 def process_file(file_input: str, output: str, hash_dict: dict, file_cnt, is_csv):
     if is_csv:
-        hash_dict, file_cnt = process_file_csv(str, str, dict, file_cnt)
+        hash_dict, file_cnt = process_file_csv(file_input, output, hash_dict, file_cnt)
         return hash_dict, file_cnt
 
     else:
-        hash_dict, file_cnt = process_file_txt(str, str, dict, file_cnt)
+        hash_dict, file_cnt = process_file_txt(file_input, output, hash_dict, file_cnt)
         return hash_dict, file_cnt
-
-    return hash_dict, file_cnt
 
 
 def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt):
