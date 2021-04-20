@@ -227,7 +227,7 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
     with open(file_input, encoding=ENCODE_READ) as csv_f:
         csv_reader = csv.reader(csv_f)
         first_line = next(csv_reader)
-        print(first_line)
+
         for title in first_line:
             if re.search(r"\s*de", title, re.IGNORECASE):
                 titles.append("de:")
@@ -243,23 +243,25 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
                 titles.append("corps:")
             else:
                 titles.append("unknown:")
-        print(titles)
+
         mail_cnt = 0
         for row in csv_reader:
-            print (row)
             mail = ""
-            for i in range(len(titles)):
-                print(i)
-                print(len(row))
-                mail = mail + titles[i] + row[i]
-                file_output = open(
-                    os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
-                    encoding=ENCODE_WRITE)
-                file_output.write(file_input + '\n')
+            file_output = open(
+                os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
+                encoding=ENCODE_WRITE)
+            file_output.write(file_input + '\n')
 
-                hash_dict = process_mail(mail, file_output, hash_dict)
+            for i in range(len(row)):
+                mail = titles[i] + row[i]
+                if titles[i] == "corps:":
+                    hash_dict = process_mail(mail, file_output, hash_dict)
+                else:
+                    mail = titles[i] + re.sub(REGEX_MAIL, ANONYME_MAIL, row[i])
+                    file_output.write(mail + '\n')
                 mail = ""
-                file_output.close()
+
+            file_output.close()
             mail_cnt += 1
 
         return hash_dict, file_cnt + 1
