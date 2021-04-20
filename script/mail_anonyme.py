@@ -48,9 +48,15 @@ CC_RE = r"(cc\s*:)([^{}]*)".format(os.linesep)
 NUMERO = r"[0-9]"
 MAJUSCULE_TEXT = r"[ ][A-Z][A-Za-zéàè]+([ ]|[\n])"
 
-NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
-NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner', dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_FR = stanza.Pipeline(lang="fr", processors='tokenize,ner',
+                         dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_EN = stanza.Pipeline(lang="en", processors='tokenize,ner',
+                         dir="data", use_gpu=True, pos_batch_size=3000)
+NLP_DE = stanza.Pipeline(lang="de", processors='tokenize,ner',
+                         dir="data", use_gpu=True, pos_batch_size=3000)
+
+anonymized_words = []
+analysed_words = []
 
 if not os.path.isdir("data"):
     os.mkdir("data")
@@ -112,11 +118,11 @@ def parse() -> argparse.Namespace:
                """Choisir le niveau d'anonymisation des mails."""
     all_args.add_argument("--level", help=hel, type=int)
 
-    hel: str = """Sélectionner ce mode pour avoir des informations supplémentaires.NON IMPLEMENTER"""
-    all_args.add_argument("--verbose", help=hel, action="store_true")
-
     hel: str = """Choisir l'encodage de lecture des fichiers contenant les mails. Encodage par défaut : cp1252."""
     all_args.add_argument("--readenc", help=hel, default="cp1252")
+
+    hel: str = """Séléctionner ce mode pour afficher les mots anonymisés par le script pour chaque mail"""
+    all_args.add_argument("--verbose", help=hel, action="store_true")
 
     args = all_args.parse_args()
     return args
@@ -133,19 +139,31 @@ def hash_user(user: str):
     return user_h.hexdigest()
 
 
-def stanza_label(mail: str, nlp):
-    doc = nlp(mail)
+def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3, min_misc_token_len=2):
+    if depth == 0:
+        return
+
+    doc = nlp(depth_analysis_str)
 
     for token in doc.ents:
+        if token.text in analysed_words or [token.text, token.type] in anonymized_words:
+            continue
+
+        if verbose_on:
+            print("> Depth=", 3 - depth)
+            print (token)
+
         if token.type == "PER" or token.type == "PERSON":
-            mail = re.sub(token.text, ANONYME_PERSONNE, mail)
+            anonymized_words.append([token.text, "ANONYME_PERSONNE"])
+
         if token.type == "LOC":
-            mail = re.sub(token.text, ANONYME_LOCALISATION, mail)
+            anonymized_words.append([token.text, "ANONYME_LOC"])
 
-    return mail
+        analysed_words.append(token.text)
+        stanza_label(token.text, nlp, depth - 1)
 
 
-def process_mail(mail: str, fd: TextIO, hash_link: dict):
+def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
     """
     This function take a string, split it in sentences and remove from each sentences all confidential data. Finally,
     sentences are written in fd file after removing sensible information.
@@ -169,11 +187,26 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
         return hash_link
 
     if langue == "en":
-        mail = stanza_label(mail, NLP_EN)
+        stanza_label(mail, NLP_EN, verbose_on)
     if langue == "fr":
-        mail = stanza_label(mail, NLP_FR)
+        stanza_label(mail, NLP_FR, verbose_on)
     if langue == "de":
-        mail = stanza_label(mail, NLP_DE)
+        stanza_label(mail, NLP_DE, verbose_on)
+
+    if verbose_on:
+        print("Les mots suivant ont été anonymisés:")
+        print(20*'=')
+        for word in anonymized_words:
+            print("\"" + word[0] + "\"", end=" ")
+            mail = re.sub(word[0], word[1], mail)
+        print("\n")
+        print(20*'=')
+    else:
+        for word in anonymized_words:
+            mail = re.sub(word[0], word[1], mail)
+
+    anonymized_words.clear()
+    analysed_words.clear()
 
     # Delete all number in mail
     results = re.findall(NUMERO, mail, re.IGNORECASE)
@@ -221,7 +254,7 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict):
     return hash_link
 
 
-def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
+def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt, verbose_on):
     titles = []
 
     with open(file_input, encoding=ENCODE_READ) as csv_f:
@@ -230,19 +263,19 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
 
         for title in first_line:
             if re.search(r"\s*de", title, re.IGNORECASE):
-                titles.append("de:")
+                titles.append("de: ")
             elif re.search(r"\s*cc", title, re.IGNORECASE):
-                titles.append("cc:")
+                titles.append("cc: ")
             elif re.search(r"\s*cci", title, re.IGNORECASE):
-                titles.append("cci:")
+                titles.append("cci: ")
             elif re.match(r"\s*a", title, re.IGNORECASE):
-                titles.append("A")
+                titles.append("A: ")
             elif re.search(r"\s*objet", title, re.IGNORECASE):
-                titles.append("objet:")
+                titles.append("objet: ")
             elif re.search(r"\s*corps", title, re.IGNORECASE):
-                titles.append("corps:")
+                titles.append("corps: ")
             else:
-                titles.append("unknown:")
+                titles.append("unknown: ")
 
         mail_cnt = 0
         for row in csv_reader:
@@ -250,16 +283,12 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
             file_output = open(
                 os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
                 encoding=ENCODE_WRITE)
-            file_output.write(file_input + '\n')
+            file_output.write(file_input + "\r\n")
 
             for i in range(len(row)):
-                mail = titles[i] + row[i]
-                if titles[i] == "corps:":
-                    hash_dict = process_mail(mail, file_output, hash_dict)
-                else:
-                    mail = titles[i] + re.sub(REGEX_MAIL, ANONYME_MAIL, row[i])
-                    file_output.write(mail + '\n')
-                mail = ""
+                mail += titles[i] + row[i] + "\r\n"
+
+            hash_dict = process_mail(mail, file_output, hash_dict, verbose_on)
 
             file_output.close()
             mail_cnt += 1
@@ -267,17 +296,19 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt):
         return hash_dict, file_cnt + 1
 
 
-def process_file(file_input: str, output: str, hash_dict: dict, file_cnt, is_csv):
+def process_file(file_input: str, output: str, hash_dict: dict, file_cnt, is_csv, verbose_on):
     if is_csv:
-        hash_dict, file_cnt = process_file_csv(file_input, output, hash_dict, file_cnt)
+        hash_dict, file_cnt = process_file_csv(
+            file_input, output, hash_dict, file_cnt, verbose_on)
         return hash_dict, file_cnt
 
     else:
-        hash_dict, file_cnt = process_file_txt(file_input, output, hash_dict, file_cnt)
+        hash_dict, file_cnt = process_file_txt(
+            file_input, output, hash_dict, file_cnt, verbose_on)
         return hash_dict, file_cnt
 
 
-def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt):
+def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt, verbose_on):
     """
     This function take a file_input fd descriptor, open it, parse mails in, and process each mail by calling
     process_mail. A mail is a text starting by FROM where FROM is a global variable defined at start at this code.
@@ -306,8 +337,9 @@ def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt):
                     file_output = open(
                         os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
                         encoding=ENCODE_WRITE)
-                    file_output.write(file_input + '\n')
-                    hash_dict = process_mail(mail, file_output, hash_dict)
+                    file_output.write(file_input + "\r\n")
+                    hash_dict = process_mail(
+                        mail, file_output, hash_dict, verbose_on)
                     mail = ""
                     file_output.close()
                 mail_cnt += 1
@@ -317,8 +349,8 @@ def process_file_txt(file_input: str, output: str, hash_dict: dict, file_cnt):
         # On traite le dernier mail
         file_output = open(
             os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w', encoding=ENCODE_WRITE)
-        file_output.write(file_input + '\n')
-        hash_dict = process_mail(mail, file_output, hash_dict)
+        file_output.write(file_input + "\r\n")
+        hash_dict = process_mail(mail, file_output, hash_dict, verbose_on)
         file_output.close()
 
         file_cnt = file_cnt + 1
@@ -363,19 +395,21 @@ def main(fd_secret: TextIO):
             os.mkdir("output")
 
     if my_args.file:
-        hash_dict, file_cnt = process_file(my_args.file, output, hash_dict, file_cnt, my_args.csv)
+        hash_dict, file_cnt = process_file(
+            my_args.file, output, hash_dict, file_cnt, my_args.csv, my_args.verbose)
 
     elif my_args.dir and my_args.rec:
         result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(
             my_args.dir) for f in filenames]
         for file in result:
-            hash_dict, file_cnt = process_file(file, output, hash_dict, file_cnt, my_args.csv)
+            hash_dict, file_cnt = process_file(
+                file, output, hash_dict, file_cnt, my_args.csv, my_args.verbose)
 
     elif my_args.dir:
         with os.scandir(my_args.dir) as files:
             for file in files:
                 hash_dict, file_cnt = process_file(
-                    os.path.join(file), output, hash_dict, file_cnt, my_args.csv)
+                    os.path.join(file), output, hash_dict, file_cnt, my_args.csv, my_args.verbose)
 
     for key, value in hash_dict.items():
         fd_secret.write('{}:{}\n'.format(key, value))
