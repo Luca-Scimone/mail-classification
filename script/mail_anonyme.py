@@ -139,14 +139,14 @@ def hash_user(user: str):
     return user_h.hexdigest()
 
 
-def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3, min_misc_token_len=2):
+def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3):
     if depth == 0:
         return
 
     doc = nlp(depth_analysis_str)
 
     for token in doc.ents:
-        if token.text in analysed_words or [token.text, token.type] in anonymized_words:
+        if [token.text, token.type] in anonymized_words:
             continue
 
         if verbose_on:
@@ -156,11 +156,12 @@ def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3, min_misc_tok
         if token.type == "PER" or token.type == "PERSON":
             anonymized_words.append([token.text, "ANONYME_PERSONNE"])
 
-        if token.type == "LOC":
+        elif token.type == "LOC":
             anonymized_words.append([token.text, "ANONYME_LOC"])
 
-        analysed_words.append(token.text)
-        stanza_label(token.text, nlp, depth - 1)
+        elif token.text not in analysed_words:
+            analysed_words.append(token.text)
+            stanza_label(token.text, nlp, verbose_on, depth - 1)
 
 
 def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
@@ -195,12 +196,10 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
 
     if verbose_on:
         print("Les mots suivant ont été anonymisés:")
-        print(20*'=')
         for word in anonymized_words:
             print("\"" + word[0] + "\"", end=" ")
             mail = re.sub(word[0], word[1], mail)
         print("\n")
-        print(20*'=')
     else:
         for word in anonymized_words:
             mail = re.sub(word[0], word[1], mail)
