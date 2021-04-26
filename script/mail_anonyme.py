@@ -149,12 +149,12 @@ def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3):
         if [token.text, token.type] in anonymized_words:
             continue
 
-        if verbose_on:
-            print("> Depth=", 3 - depth)
-            print (token)
+        # if verbose_on:
+        #     print("> Depth=", 3 - depth)
+        #     print (token)
 
         if token.type == "PER" or token.type == "PERSON":
-            anonymized_words.append([token.text, "ANONYME_PERSONNE"])
+            anonymized_words.append([token.text, "ANONYME_PER"])
 
         elif token.type == "LOC":
             anonymized_words.append([token.text, "ANONYME_LOC"])
