@@ -157,6 +157,8 @@ def parse() -> argparse.Namespace:
     return args
 
 
+
+
 def hash_user(user: str):
     """
     :param user: It is a string to hash.
@@ -166,6 +168,8 @@ def hash_user(user: str):
     user_encode = user.encode(encoding=ENCODE_WRITE)
     user_h.update(user_encode)
     return user_h.hexdigest()
+
+
 
 
 def get_name_range (begining, end, mail) :
