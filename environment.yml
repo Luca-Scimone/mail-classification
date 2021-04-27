@@ -26,3 +26,4 @@ dependencies:
   - seaborn
   - scikit-learn
   - readchar
+  - tqdm

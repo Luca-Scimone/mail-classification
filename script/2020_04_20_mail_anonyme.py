@@ -7,6 +7,7 @@ sont hashés. La correspondance strinh/hash_string est écrite dans un fichier '
 
 Pour un directory : python3 mail_anonyme.py --dir d --rec
 """
+from tqdm.auto import tqdm
 import string
 import csv
 import hashlib
@@ -81,6 +82,7 @@ print("Reading the french names data set ...")
 
 if not os.path.exists("Prenoms.csv"):
     print ("Error: Prenoms.csv was not found.")
+    exit (1)
 else:
     regex = re.compile('[^a-zA-Z]')
     with open("Prenoms.csv", encoding=ENCODE_READ, errors="ignore") as csv_f:
@@ -173,6 +175,37 @@ def hash_user(user: str):
 
 
 def get_name_range (begining, end, mail) :
+    """
+    This function receives an input of a starting position of a name and
+    an ending position of a name. With this information, this function needs
+    to remove all WORDS that are before the starting position and after (see
+    the example in the description of the function brute_remove_names)
+
+    There are some special cases:
+        If the begining position is already a word (example: bonjourjean) and the
+        endining position is already a word (example: jeanbon) then nothing is done
+        because some names are contained in some words which does not correspond
+        to something worth anonimizing.
+
+        If the word is isolated ([SPACE]Jean[SPACE]) we go left and right. While we
+        are reading spaces, we do nothing, when a character that is not a space is read
+        we enter the state 'reading_word'. In this state, if a space is read, then we
+        have found the word before or after the name. 
+        Example for Jean Dupont
+            - Reading the space between Jean and Dupont -> continue
+            - Reading 'D' -> reading_word = True
+            - Reading 'u' -> reading_word = True
+            - Reading 'p' -> reading_word = True
+            - Reading 'o' -> reading_word = True
+            - Reading 'n' -> reading_word = True
+            - Reading 't' -> reading_word = True
+            - Reading ' ' -> reading_word is True and we read a space -> break.
+
+        Note: A special case is the character ':', because we don't want this script to
+        modify the structure of the mail (ie. we don't want to change the cc:, De: ect...)
+        The character ':' therefore means the search should stop immediately.
+        This means that :jean dupond: is likely to fail.
+    """
     left_idx, right_idx = begining - 1, end + 1
 
     reading_word = False
@@ -215,6 +248,20 @@ def get_name_range (begining, end, mail) :
 
 
 def brute_remove_names (mail, verbose_on):
+    """
+    This function goes through the names dataset and tries to find a name in the mail.
+    If a mail is found, the initial char and the last char that should be remove are
+    given by the function get_name_range. We want to remove any word that is before
+    the name that was found, and after:
+
+                    -suis-    [Jean] -Dupont-
+                    removed   found  removed
+                         and also removed
+
+    :param mail: The string that will be analyzed (ie. the mail).
+
+    :param verbose_on: An integer stating the level of information the user wants.
+    """
     # Removing capital letters to match the dataset
     cleared_mail = mail.lower()
 
@@ -242,6 +289,23 @@ def brute_remove_names (mail, verbose_on):
 
 
 def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3):
+    """
+    This function passes the mail through the NER neural network. If the result is 
+    MISC; the string is recursivly given to this function again, in order to capture
+    other possibles names or locations nested in the MISC result.
+
+    For optimization, all words that need to be removed or that were tested are inserted
+    in arrays and so: 1) the recursion stops when it is looping on the same word 2) the
+    removal of the words in the mail is only done one time 
+
+    :param depth_analysis_str: The string that will be analyzed by the NER network.
+
+    :param nlp: The neural network per say 
+
+    :param verbose_on: An integer stating the level of information the user wants.
+
+    :param depth: The maximum number of recussions allowed in this function
+    """
     if depth == 0:
         return
 
@@ -307,7 +371,6 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
     # New brute force technique to remove names
     mail = brute_remove_names (mail, verbose_on)
 
-
     if verbose_on:
         if len(anonymized_words):
             print (79*'=')
@@ -330,44 +393,10 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
     results = re.findall(NUMERO, mail, re.IGNORECASE)
     for result in results:
         mail = re.sub("{}".format(result), RANDOM_NUMBER, mail)
-    """
-    # Catch special cases (lines that starts with 'de:','à:'...)
-    result = re.search(FROM_RE, mail, re.IGNORECASE)
-    if result:
-        # on récupère le deuxième groupe
-        # on strip pour ne pas hasher les espaces !
-        user_from: str = result.group(2).strip()
-        if user_from != "":
-            hash_link[user_from] = hash_user(user_from)
-            mail = re.sub("{}".format(user_from), hash_link[user_from], mail)
-
-    # The receiver have to be hide too. Since  there can be several receivers, we should use findall.
-    results = re.findall(TO_RE, mail, re.IGNORECASE)
-    for result in results:
-        user_to = result[1].strip()
-        if user_to != "":
-            hash_link[user_to] = hash_user(user_to)
-            mail = re.sub("{}".format(user_to), hash_link[user_to], mail)
-
-    # all people in CC are replaced with ANONYME string
-    result = re.search(CC_RE, mail, re.IGNORECASE)
-    if result:
-        cc = result.group(2).strip()
-        if cc != "":
-            mail = re.sub("{}".format(cc), ANONYME, mail)
-    """
+    
     # replace all mail by anonymous string. Mail in metadata have already been processed.
     mail = re.sub(REGEX_MAIL, ANONYME_MAIL, mail)
 
-    # Enfin, on affiche les derniers dont on n'est pas sûr
-    # result = re.findall(NAMES_RE, mail)
-
-    # if result:
-    #     print (79*'=')
-    #     print("Les mots suivants n'ont pas été anonymisés et pourtant ce sont peut-être des prénoms :")
-    #     for maybe_is_name in result:
-    #         print(re.sub(r'\s', " ", maybe_is_name))
-    #     print("\n")
     fd.write(mail)
 
     return hash_link
@@ -375,6 +404,11 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
 
 def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt, verbose_on):
     titles = []
+    print ("Starting anonymization... (this might take a while)")
+
+    with open(file_input, encoding=ENCODE_READ, errors="ignore") as csv_f:
+        row_count = sum(1 for _ in csv.reader(csv_f))
+        csv_f.close()
 
     with open(file_input, encoding=ENCODE_READ, errors="ignore") as csv_f:
         csv_reader = csv.reader(csv_f)
@@ -396,8 +430,8 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt, ve
             else:
                 titles.append("unknown: ")
 
-        mail_cnt = 0
-        for row in csv_reader:
+        for mail_cnt in tqdm(range(row_count - 1)):
+            row = next(csv_reader)
             mail = ""
             file_output = open(
                 os.path.join(output, "mail_" + str(file_cnt) + "_" + str(mail_cnt)), mode='w',
@@ -410,7 +444,8 @@ def process_file_csv(file_input: str, output: str, hash_dict: dict, file_cnt, ve
             hash_dict = process_mail(mail, file_output, hash_dict, verbose_on)
 
             file_output.close()
-            mail_cnt += 1
+
+        csv_f.close()
 
         return hash_dict, file_cnt + 1
 
