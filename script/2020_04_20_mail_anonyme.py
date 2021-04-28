@@ -327,11 +327,32 @@ def stanza_label(depth_analysis_str: str, nlp, verbose_on, depth=3):
             stanza_label(token.text, nlp, verbose_on, depth - 1)
 
 
-def unique(list1):
+def treatement_of_anonymized_words (list1):
+    """
+    This function removes any redundant anonymized string from the array
+    list1 (for optimization purposes). It also tests if the string that needs
+    to be remove is alphabetical, do prevent the anonymization of every spaces
+    in the mail for example
+
+    :param list1: A list of lists organized in tuple of 3 elements:
+    ["String that needs to be anonymized", 
+    "The replacement", 
+    An integer marking where the string was anonymized]
+
+    The first element is simply the string that will be removed, then we have
+    the string that will replace the removed string (most of the time ANONYM_PER).
+    Finaly the integer is used for the verbose option: if it is at 0, the string
+    was anonymized by the brute force tehcnique using the Prenoms.csv dataset;
+    if it is at 1, it was anonymized by NER (therefore, we can print how the string
+    was anonymized when --verbose is on)
+
+    :return:  Returns the final list of strings that need to be anonymized
+    """
     unique_list = []
 
     for x in list1:
-        if x not in unique_list:
+        # First test verifies that the string that needs to be removed is alphabetical
+        if x[0].lower().islower() and x not in unique_list:
             unique_list.append(x)
 
     return  unique_list
@@ -376,13 +397,13 @@ def process_mail(mail: str, fd: TextIO, hash_link: dict, verbose_on):
             print (79*'=')
             print("\n\033[1mLes mots suivant ont été anonymisés par le réseau de neurones NER:\033[0m\n")
         print ('\033[95m', end="")
-        for word in unique(anonymized_words):
+        for word in treatement_of_anonymized_words (anonymized_words):
             if word[2] == 1: # Brute Force results don't need to be printed
                 print("\"" + word[0] + "\"", end=" ")
             mail = mail.replace(word[0], word[1])
         print ('\033[0m\n')
     else:
-        for word in unique(anonymized_words):
+        for word in treatement_of_anonymized_words (anonymized_words):
             mail = mail.replace(word[0], word[1])  
 
 
