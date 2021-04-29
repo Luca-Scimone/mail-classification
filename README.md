@@ -37,6 +37,9 @@ Available datasets:
 - Mails anonymisés par notre script (partielement labelisés)
 	- argument 1: https://drive.google.com/uc?id=1O1qOK8nWRa3hTVSxUnPAYJN5Di_am9bi
 	- argument 2: raw_mails
+- Mails anonymisés et que nous avons labélisés manuelement
+	- argument 1: https://drive.google.com/uc?id=1b5jHyPQZSmPpHMejmtUOayQaGKq25F1K
+	- argument 2: labeled_data
 
 One usage exemple:
 
