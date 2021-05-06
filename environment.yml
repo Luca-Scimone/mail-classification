@@ -29,3 +29,4 @@ dependencies:
   - tqdm
   - pytorch
   - conda-forge::transformers
+  - conda-forge::sentencepiece
