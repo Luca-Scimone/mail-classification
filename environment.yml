@@ -27,3 +27,5 @@ dependencies:
   - scikit-learn
   - readchar
   - tqdm
+  - pytorch
+  - conda-forge::transformers
