@@ -45,28 +45,13 @@ print(len(train_data))
 print("Number of test samples ")
 print(len(test_data))
 
-# Random Tree Forest -----------------------------------------------
-X = wr.count() # Using a simple couting representation 
-X_train = X[0:a]
-X_test = X[a:]
-# Import the model we are using
-from sklearn.ensemble import RandomForestRegressor
-# Instantiate model with 1000 decision trees
-rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
-# Train the model on training data
-rf.fit(X_train, mails_labels_num[0:a]);
-# Predict the model
-predictions = rf.predict(X_test)
-
-
-exit (0)
-
-
 # Build the Bayes model ------------------------------------------------
 model = make_pipeline(TfidfVectorizer(), MultinomialNB())  # Train the model using the training data
 model.fit(train_data, mails_labels[0:a])  # Predict the categories of the test data
 predicted_categories = model.predict(test_data)
 print(np.array(mails_labels))
+
+print (accuracy_score(mails_labels[a:], predicted_categories))
 
 # plot the confusion matrix
 mat = confusion_matrix(predicted_categories, mails_labels[a:])

@@ -11,7 +11,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
 import matplotlib.pyplot as plt
 import torch
 import transformers as ppb
@@ -119,6 +120,8 @@ label_names = ['Déménagement', 'Relève de compteur', 'Réclamation',
 rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
 y_pred = rf.fit(X_train, y_train).predict(X_test).astype('int')
 
+print (accuracy_score(y_test, y_pred))
+
 # Ploting the confusion matrix
 mat = confusion_matrix(y_pred, y_test)
 sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=label_names,yticklabels=label_names)
@@ -130,6 +133,8 @@ plt.show()
 ### --- Testing BERT feature extraction with Gaussian Naive Bayes --- ###
 gnb = GaussianNB()
 y_pred = gnb.fit(X_train, y_train).predict(X_test).astype('int')
+
+print (accuracy_score(y_test, y_pred))
 
 # Ploting the confusion matrix
 mat = confusion_matrix(y_pred, y_test)
