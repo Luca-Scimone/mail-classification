@@ -28,7 +28,7 @@ def load_data (data_path, encoding, quiet) :
     increasing every time a file is read.
     """
     def parse_file (f, mails) :
-        file_path = os.path.join(path, f)
+        file_path = os.path.join(data_path, f)
             
         with codecs.open(file_path, 'r', encoding=encoding) as json_f:
             data_json = json.load(json_f)
@@ -43,17 +43,18 @@ def load_data (data_path, encoding, quiet) :
 
         return mails
 
-    path = os.path.join(os.path.join(os.getcwd(), "data"), "mails")
-
     mails = []
 
+    if not os.path.exists(data_path):
+        raise ValueError("path to the directory containing the emails not found.")
+
     if quiet:
-        for _, _, files in os.walk(path):
+        for _, _, files in os.walk(data_path):
             for f in files[:]:
                 mails = parse_file (f, mails)
     else:
         print ("Loading the emails dataset...")
-        for _, _, files in os.walk(path):
+        for _, _, files in os.walk(data_path):
             for f in tqdm(files[:]):
                 mails = parse_file (f, mails)
         print ("done.")
