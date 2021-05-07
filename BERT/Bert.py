@@ -219,9 +219,18 @@ class Bert(object):
         print (attention_mask)
 
 
-    def embedding (self) :
+    def embedding (self, test_size=None, random_state=None) :
         """
         Creates a word embedding of the dataset.
+
+        Paramters:
+        test_size: If float, should be between 0.0 and 1.0 and represent the proportion 
+        of the dataset to include in the test split. If int, represents the absolute number
+        of test samples. If None, the value will be set to 0.25.
+
+        random_state: Controls the shuffling applied to the data before applying the split.
+        Pass an int for reproducible output across multiple function calls.
+
 
         This function outputs a ready to use word embedding of the dataset in
         the form of 4 elements that this function returns:
@@ -257,7 +266,8 @@ class Bert(object):
         # The labels
         labels = self.df.iloc[1]
 
-        X_train, X_test, y_train, y_test = train_test_split(features, labels)
+        X_train, X_test, y_train, y_test = train_test_split(features, labels, 
+            test_size=test_size, random_state=random_state)
 
         # Ensuring the labels are integers
         y_train = y_train.astype('int')
