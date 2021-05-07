@@ -4,7 +4,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 
-X_train, X_test, y_train, y_test = Bert().embedding()
+X_train, X_test, y_train, y_test = Bert(batch_size=100).embedding()
 
 label_names = ['Déménagement', 'Relève de compteur', 'Réclamation',
     'Contrat – Coordonnées personnelles', 'Facture – Paiement', 'Espace client']

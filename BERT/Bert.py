@@ -99,12 +99,14 @@ class Bert(object):
 
         if batch_size < 0:
             raise ValueError('Batch size cannot be negative yet batch_size=' + str(batch_size))
-        elif len(df) < batch_size:
-            raise ValueError('Batch size is larger than the dataframe size')
+        elif len(df.axes[1]) < batch_size:
+            raise ValueError('Batch size is larger than the dataframe size; dataframe size=' + str(len(df.axes[1])))
         elif batch_size == 0:
             self.df = df
         else:
-            self.df = df[:batch_size]
+            if not quiet:
+                print("Using a custom batch size of " + str(batch_size) + " emails.")
+            self.df = df.iloc[: , :batch_size]
 
         self.quiet = quiet
 
@@ -269,6 +271,10 @@ class Bert(object):
 
         X_train, X_test, y_train, y_test = train_test_split(features, labels, 
             test_size=test_size, random_state=random_state)
+
+        if not self.quiet:
+            print("Size of the 'train' dataset: " + str(len(X_train)))
+            print("Size of the 'test' dataset: " + str(len(X_test)))
 
         # Ensuring the labels are integers
         y_train = y_train.astype('int')
