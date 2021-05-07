@@ -188,9 +188,9 @@ class Bert(object):
         """
         A simple function that initiates the tokenizer, padding and attention mask
         """
-        __init_tokenizer__()
-        __init_padding__()
-        __init_attention_mask__()
+        self.__init_tokenizer__()
+        self.__init_padding__()
+        self.__init_attention_mask__()
 
 
     def test_tokenizer_on_sentences (self, *test_texts) :
