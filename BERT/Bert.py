@@ -38,7 +38,10 @@ def load_data (data_path, encoding, quiet) :
             obj   = msg['Objet']
             cat   = msg['Catégorie']
 
-        label = [i for i, label in enumerate(list(cat[0].values())) if label == 1][0]
+        try:
+            label = [i for i, label in enumerate(list(cat[0].values())) if label == 1][0]
+        except:
+            raise ValueError("mail " + str(f) + " had no labels and caused a fatal exception.")
         mails.append([obj + corps, label])
 
         return mails
