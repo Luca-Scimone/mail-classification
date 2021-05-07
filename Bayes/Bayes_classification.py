@@ -57,7 +57,11 @@ print(np.array(mails_labels))
 print (accuracy_score(mails_labels[a:], predicted_categories))
 
 # plot the confusion matrix
-mat = confusion_matrix(predicted_categories, mails_labels[a:])
+round_predictions = np.around(predictions)
+mat_r = confusion_matrix(round_predictions, mails_labels_num[a:])
+sns.heatmap(mat_r, square = True, annot=True, fmt = "d", xticklabels = liste_labels_RTF, yticklabels = liste_labels_RTF)
+plt.xlabel("true labels")
+plt.ylabel("predicted label")
 sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=liste_labels,yticklabels=liste_labels)
 plt.xlabel("predicted label")
 plt.ylabel("true labels")
