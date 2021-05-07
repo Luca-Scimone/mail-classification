@@ -5,7 +5,9 @@ channels:
 #  - hcc
 dependencies:
   - python=3.8
+  - transformers
   - jupyter
+  - tensorflow
   - conda-forge::gdown
   - conda-forge::pyldavis
   - conda-forge::wordcloud
@@ -27,3 +29,6 @@ dependencies:
   - scikit-learn
   - readchar
   - tqdm
+  - pytorch
+  - conda-forge::transformers
+  - conda-forge::sentencepiece
