@@ -56,15 +56,25 @@ print(np.array(mails_labels))
 
 print (accuracy_score(mails_labels[a:], predicted_categories))
 
+# Build Random Tree Forest model -----------------------------------------------------------------------------------------------------
+X = wr.count() # Using a simple couting representation 
+X_train = X[0:a]
+X_test = X[a:]
+# Import the model we are using
+from sklearn.ensemble import RandomForestRegressor
+# Instantiate model with 1000 decision trees
+rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
+# Train the model on training data
+rf.fit(X_train, mails_labels_num[0:a])
+# Predict the model
+predictions = rf.predict(X_test)
+
 # plot the confusion matrix
 round_predictions = np.around(predictions)
 mat_r = confusion_matrix(round_predictions, mails_labels_num[a:])
 sns.heatmap(mat_r, square = True, annot=True, fmt = "d", xticklabels = liste_labels_RTF, yticklabels = liste_labels_RTF)
 plt.xlabel("true labels")
 plt.ylabel("predicted label")
-sns.heatmap(mat.T, square = True, annot=True, fmt = "d", xticklabels=liste_labels,yticklabels=liste_labels)
-plt.xlabel("predicted label")
-plt.ylabel("true labels")
 plt.show()
 print("The accuracy with RTF is {}".format(accuracy_score(mails_labels_num[a:], round_predictions)))
 
