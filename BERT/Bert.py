@@ -127,18 +127,23 @@ class Bert(object):
         if not quiet:
             print ("done.")
 
-        self.tokenized = None
-        self.padded = None
-        self.attention_mask = None
+        self.tokenized_isset      = False
+        self.padded_isset         = False
+        self.attention_mask_isset = False
 
 
     def __init_tokenizer__ (self) :
         """
         Initiates the tokenization of the data.
         """
+        if self.tokenized_isset:
+            return
+
         self.tokenized = self.df.iloc[0].apply((lambda x: 
             self.tokenizer.encode(x, truncation = True, max_length = self.max_length, 
                 add_special_tokens=True)))
+
+        tokenized_isset = True
 
 
     def __init_padding__ (self) :
@@ -150,8 +155,8 @@ class Bert(object):
         This is necessary in order for the tokenized representation of our data to be
         given as input to the neural network.
         """
-        if self.tokenized == None:
-            self.__init_tokenizer__ ()
+        if self.padded_isset:
+            return
 
         max_len = 0
         for i in self.tokenized.values:
@@ -159,6 +164,7 @@ class Bert(object):
                 max_len = len(i)
 
         self.padded = np.array([i + [0]*(max_len-len(i)) for i in self.tokenized.values])
+        self.padded_isset = True
 
 
     def __init_attention_mask__ (self) :
@@ -171,7 +177,20 @@ class Bert(object):
         Check the function test_sentence_treatement for a visual example of
         how this function works.
         """
+        if self.attention_mask_isset:
+            return
+
         self.attention_mask = np.where(self.padded != 0, 1, 0)
+        attention_mask_isset = True
+
+
+    def __init_bert_tools__ (self) :
+        """
+        A simple function that initiates the tokenizer, padding and attention mask
+        """
+        __init_tokenizer__()
+        __init_padding__()
+        __init_attention_mask__()
 
 
     def test_tokenizer_on_sentences (self, *test_texts) :
@@ -183,9 +202,7 @@ class Bert(object):
 
         NB: this function is solely for a visualization of how BERT works.
         """
-
-        if self.tokenizer == None:
-            __init_tokenizer__ ()
+        self.__init_bert_tools__ ()
 
         tokenized = []
 
@@ -209,6 +226,8 @@ class Bert(object):
 
         NB: this function is solely for a visualization of how BERT works.
         """
+        self.__init_bert_tools__ ()
+
         tokenized = self.test_tokenizer_on_sentences (*test_texts)
 
         max_len = 0
@@ -247,13 +266,8 @@ class Bert(object):
         - y_train: The ground truth labels associated with X_train
         - y_test: The ground truth labels associated with X_test
         """
-        if self.tokenizer == None:
-            self.__init_tokenizer__ ()
-        if self.padded == None:
-            self.__init_padding__ ()
-        if self.attention_mask == None:
-            self.__init_attention_mask__ ()
-            
+        self.__init_bert_tools__ ()
+
         # Creating tensors from the padded matrix and the mask
         input_ids = torch.tensor(self.padded)  
         attention_mask = torch.tensor(self.attention_mask)
