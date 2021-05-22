@@ -28,11 +28,11 @@ before_script:
   - apt-get update
   - apt-get install python3.8
   
-  - conda env create --file environment.yml
-  - conda env update
+  # - conda env create --file environment.yml
+  # - conda env update
 
 test:
   script:
     - python3 ./script/collect_data.py https://drive.google.com/uc?id=1O1qOK8nWRa3hTVSxUnPAYJN5Di_am9bi raw_mails
     - python3 ./data_processing/to_json.py "utf-8"
-    -  python3 BERT/ClassifierModel.py
+    # -  python3 BERT/ClassifierModel.py
