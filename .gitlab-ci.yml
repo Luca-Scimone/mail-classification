@@ -19,6 +19,7 @@ image: python:latest
 #    - venv/
 
 before_script:
+  - lshw
   - apt update
   - apt upgrade -y
   - pip3 install -r requirements.txt
