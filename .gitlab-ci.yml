@@ -1,7 +1,7 @@
 # This file is a template, and might need editing before it works on your project.
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-# image: python:latest
+image: python:latest
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -21,7 +21,13 @@
 before_script:
   - apt update
   - apt upgrade -y
-  - apt install conda python python3 pip -y
+  - wget https://repo.continuum.io/archive/Anaconda3-5.0.0.1-Linux-x86_64.sh
+  - sh Anaconda3-5.0.0.1-Linux-x86_64.sh
+  - apt-get install software-properties-common
+  - add-apt-repository ppa:deadsnakes/ppa
+  - apt-get update
+  - apt-get install python3.8
+  
   - conda env create --file environment.yml
   - conda env update
 
