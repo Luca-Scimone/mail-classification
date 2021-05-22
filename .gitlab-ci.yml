@@ -19,7 +19,6 @@
 #    - venv/
 
 before_script:
-  - python -V  # Print out python version for debugging
   - apt install conda python python3 pip -y
   - conda env create --file environment.yml
   - conda env update
