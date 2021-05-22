@@ -21,7 +21,7 @@ image: python:latest
 before_script:
   - apt update
   - apt upgrade -y
-  - pip3 install requirement.txt
+  - pip3 install -r requirement.txt
   # - wget https://repo.continuum.io/archive/Anaconda3-5.0.0.1-Linux-x86_64.sh
   # - yes | sh Anaconda3-5.0.0.1-Linux-x86_64.sh
   # - apt-get install software-properties-common
