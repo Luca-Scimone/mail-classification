@@ -19,6 +19,8 @@
 #    - venv/
 
 before_script:
+  - apt update
+  - apt upgrade -y
   - apt install conda python python3 pip -y
   - conda env create --file environment.yml
   - conda env update
