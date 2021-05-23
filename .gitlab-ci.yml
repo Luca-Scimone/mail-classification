@@ -31,7 +31,7 @@ before_script:
   # - apt-get update
   # - apt-get install python3.8
   - find -name conda.sh
-  - source ~/anaconda3/etc/profile.d/conda.sh
+  - source /etc/profile.d/conda.sh
   - conda create --name pi_env -y
   - conda activate pi_env
   - conda install tensorflow
