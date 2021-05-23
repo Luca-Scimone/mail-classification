@@ -1,6 +1,6 @@
-# This file is a template, and might need editing before it works on your project.
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
+# on se place dans une image docker anaconda. Je suis pas convaincu de l'utilité vu la lenteur de anaconda pour 
+# mettre en place un environnement virtuel. On pourrait simplement utiliser pip ou alors diviser notre fichier 
+# d'environnement yaml en plusieurs sous fichiers.
 image: continuumio/anaconda3
 
 # Change pip's cache directory to be inside the project directory since we can
@@ -19,24 +19,16 @@ image: continuumio/anaconda3
 #    - venv/
 
 before_script:
-  - apt update
-  - apt upgrade -y
-  - apt install lshw -y
-  - lshw
-  # pip3 install -r requirements.txt
-  # - wget https://repo.continuum.io/archive/Anaconda3-5.0.0.1-Linux-x86_64.sh
-  # - yes | sh Anaconda3-5.0.0.1-Linux-x86_64.sh
-  # - apt-get install software-properties-common
-  # - add-apt-repository ppa:deadsnakes/ppa
-  # - apt-get update
-  # - apt-get install python3.8
-  - find -name conda.sh
+  # - apt install lshw -y
+  # - lshw
+  # Dans un script, on est obligé d'appeler source 
   - source /etc/profile.d/conda.sh
   - conda env create --file environment.yml
-  # conda env update
 
 test:
   script:
+    # Au cas où, on rappelle source
+    - source /etc/profile.d/conda.sh
     - conda activate pi_env
     - python3 ./script/collect_data.py https://drive.google.com/uc?id=1O1qOK8nWRa3hTVSxUnPAYJN5Di_am9bi raw_mails
     - python3 ./data_processing/to_json.py "utf-8"
