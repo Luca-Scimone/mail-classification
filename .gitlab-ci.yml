@@ -30,9 +30,14 @@ before_script:
   # - add-apt-repository ppa:deadsnakes/ppa
   # - apt-get update
   # - apt-get install python3.8
-  
-  - conda env create --file environment.yml
-  - conda env update
+  - find -name conda.sh
+  - source ~/anaconda3/etc/profile.d/conda.sh
+  - conda create --name pi_env -y
+  - conda activate pi_env
+  - conda install tensorflow
+
+  # conda env create --file environment.yml
+  # conda env update
 
 test:
   script:
