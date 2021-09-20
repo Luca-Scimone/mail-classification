@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import os.path
+import csv
 
 
 class Data(ABC):
@@ -10,40 +12,62 @@ class Data(ABC):
     def get(self):
         pass
 
-    """ 
+    """
     Set your mails from a stream (file, tcp connexion, other object...)
     """
 
     @abstractmethod
-    def set(self, stream=None):
+    def set(self, encoding, header, stream=None):
         pass
-
 
 class Mails(Data):
     def __init__(self):
         # list of Mails
         self._mails = []
+        # Names of the rows in the CSV format
+        self._row_names = [
+                "de",
+                "cc",
+                "cci",
+                "A",
+                "objet",
+                "corps"
+            ]
 
     def __str__(self):
         r = ""
         for mail in self.mails:
-            r += "," + mail.__str__()
+            r += "\n\n" + mail.__str__()
         return r
-
-    def fake_mails(self):
-        fake_mail1 = Mail({"message": "Bonjour Monsieur Dupond."})
-        fake_mail2 = Mail({"message": "Bonjour."})
-        self._mails.append(fake_mail1)
-        self._mails.append(fake_mail2)
 
     def get(self):
         return self._mails
 
-    def set(self, stream=None):
-        print("Set data from your stream. ", stream)
-        # TODO self_mails must contain all mails as list of Mail (see bellow)
-        # self.mails = stream
-        self.fake_mails()
+    """
+    Reads a csv file of path 'stream'. Each column should represent the types
+    defined in self._row_names.
+    """
+
+    def set(self, stream, encoding, header):
+        if not os.path.isfile(stream):
+            raise Exception("Not a regular file", stream)
+
+        with open(stream, encoding=encoding, newline='') as file:
+            csv_reader = csv.reader(file)
+
+            if header:
+                next(csv_reader)
+
+            for row in csv_reader:
+                temp_dict = dict()
+
+                for col_idx, col in enumerate(row):
+                    if col_idx < len(self._row_names):
+                        temp_dict[self._row_names[col_idx]] = col
+                    else:
+                        print("Warning: extra row in ", stream)
+
+                self._mails.append(Mail(temp_dict))
 
     @property
     def mails(self) -> list:
