@@ -18,7 +18,7 @@ class PipelinesManager:
     def __init__(self, path="", encoding='cp1252', header=True):
         self.pipelines = dict()
         self._data = Mails()  # READ ONLY
-        self._read_data(path=path, encoding, header)
+        self._read_data(path, encoding, header)
         print("Your data is : ", self.data)
         self._name = 'name'
         self.nb_pipelines = 0

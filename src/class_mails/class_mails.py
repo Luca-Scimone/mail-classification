@@ -17,7 +17,7 @@ class Data(ABC):
     """
 
     @abstractmethod
-    def set(self, stream=None):
+    def set(self, encoding, header, stream=None):
         pass
 
 class Mails(Data):
@@ -48,7 +48,7 @@ class Mails(Data):
     defined in self._row_names.
     """
 
-    def set(self, stream=None, encoding, header):
+    def set(self, stream, encoding, header):
         if not os.path.isfile(stream):
             raise Exception("Not a regular file", stream)
 
