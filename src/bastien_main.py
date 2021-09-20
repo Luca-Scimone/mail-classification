@@ -1,4 +1,5 @@
 from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
+from src.estimators.preprocessing import ToNumpy
 from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from src.pipelines import PipelinesManager
 
@@ -16,6 +17,6 @@ if __name__ == "__main__":
     # Empty_Pipeline in pipelines_example. This main must stay as short as possible.
     my_pipeline = EmptyPipeline()
     my_pipeline.shared_data = manager.data  # set data for training
-    my_pipeline.pipeline = (FirstEstimator(), ExampleEstimator(), Example2Estimator())  # Give your pipeline
+    my_pipeline.pipeline = [ToNumpy()]  # Give your pipeline
     my_pipeline.transform()
     my_pipeline.show_confusion_matrix()
