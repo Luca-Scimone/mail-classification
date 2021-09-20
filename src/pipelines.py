@@ -15,10 +15,10 @@ class PipelinesManager:
     class or predict over shared data. If you predict over shared data, shared data MUST NOT BE changed.
     """
 
-    def __init__(self, path=""):
+    def __init__(self, path="", encoding='cp1252', header=True):
         self.pipelines = dict()
         self._data = Mails()  # READ ONLY
-        self._read_data(path=path)
+        self._read_data(path=path, encoding, header)
         print("Your data is : ", self.data)
         self._name = 'name'
         self.nb_pipelines = 0
@@ -35,8 +35,8 @@ class PipelinesManager:
         return self._name
 
     # Call the set mails of the Mails classe
-    def _read_data(self, path):
-        self._data.set(path)
+    def _read_data(self, path, encoding, header):
+        self._data.set(path, encoding, header)
 
     # pipeline is a subclass of BasePipeline
     def register_pipeline(self, pipeline, name='default'):

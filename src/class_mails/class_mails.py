@@ -48,7 +48,7 @@ class Mails(Data):
     defined in self._row_names.
     """
 
-    def set(self, stream=None, encoding='cp1252', header=True):
+    def set(self, stream=None, encoding, header):
         if not os.path.isfile(stream):
             raise Exception("Not a regular file", stream)
 
