@@ -48,7 +48,10 @@ class Mails(Data):
     defined in self._row_names.
     """
 
-    def _set_from_csv(self, stream, encoding='cp1252', header=True):
+    def set(self, stream=None, encoding='cp1252', header=True):
+        if not os.path.isfile(stream):
+            raise Exception("Not a regular file", stream)
+
         with open(stream, encoding=encoding, newline='') as file:
             csv_reader = csv.reader(file)
 
@@ -59,35 +62,12 @@ class Mails(Data):
                 temp_dict = dict()
 
                 for col_idx, col in enumerate(row):
-                    if col_idx == len(self._row_names):
-                        break
-                    temp_dict[self._row_names[col_idx]] = col
+                    if col_idx < len(self._row_names):
+                        temp_dict[self._row_names[col_idx]] = col
+                    else:
+                        print("Warning: extra row in ", stream)
 
                 self._mails.append(Mail(temp_dict))
-
-    def _set_from_txt(self, stream):
-        raise Exception("Unsuported txt extension")
-    
-    def _set_from_dir(self, stream):
-        raise Exception("Unsuported directory extension")
-
-    def set(self, stream=None):
-        if not os.path.exists(stream):
-            return
-        
-        if os.path.isfile(stream):
-            file_type = os.path.splitext(stream)[1]
-            if file_type == ".csv":
-                self._set_from_csv(stream)
-            elif file_type == ".txt":
-                self._set_from_txt(stream)
-            else:
-                raise Exception("Unsuported type: \'" + file_type + "\'")
-        elif os.path.isdir(stream):
-            self._set_from_dir(stream)
-        else:
-            raise Exception("Path is neither a directory or file")
-
 
     @property
     def mails(self) -> list:
