@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import os.path
+import csv
 
 
 class Data(ABC):
@@ -10,7 +12,7 @@ class Data(ABC):
     def get(self):
         pass
 
-    """ 
+    """
     Set your mails from a stream (file, tcp connexion, other object...)
     """
 
@@ -18,32 +20,74 @@ class Data(ABC):
     def set(self, stream=None):
         pass
 
-
 class Mails(Data):
     def __init__(self):
         # list of Mails
         self._mails = []
+        # Names of the rows in the CSV format
+        self._row_names = [
+                "de",
+                "cc",
+                "cci",
+                "A",
+                "objet",
+                "corps"
+            ]
 
     def __str__(self):
         r = ""
         for mail in self.mails:
-            r += "," + mail.__str__()
+            r += "\n\n" + mail.__str__()
         return r
-
-    def fake_mails(self):
-        fake_mail1 = Mail({"message": "Bonjour Monsieur Dupond."})
-        fake_mail2 = Mail({"message": "Bonjour."})
-        self._mails.append(fake_mail1)
-        self._mails.append(fake_mail2)
 
     def get(self):
         return self._mails
 
+    """
+    Reads a csv file of path 'stream'. Each column should represent the types
+    defined in self._row_names.
+    """
+
+    def _set_from_csv(self, stream, encoding='cp1252', header=True):
+        with open(stream, encoding=encoding, newline='') as file:
+            csv_reader = csv.reader(file)
+
+            if header:
+                next(csv_reader)
+
+            for row in csv_reader:
+                temp_dict = dict()
+
+                for col_idx, col in enumerate(row):
+                    if col_idx == len(self._row_names):
+                        break
+                    temp_dict[self._row_names[col_idx]] = col
+
+                self._mails.append(Mail(temp_dict))
+
+    def _set_from_txt(self, stream):
+        raise Exception("Unsuported txt extension")
+    
+    def _set_from_dir(self, stream):
+        raise Exception("Unsuported directory extension")
+
     def set(self, stream=None):
-        print("Set data from your stream. ", stream)
-        # TODO self_mails must contain all mails as list of Mail (see bellow)
-        # self.mails = stream
-        self.fake_mails()
+        if not os.path.exists(stream):
+            return
+        
+        if os.path.isfile(stream):
+            file_type = os.path.splitext(stream)[1]
+            if file_type == ".csv":
+                self._set_from_csv(stream)
+            elif file_type == ".txt":
+                self._set_from_txt(stream)
+            else:
+                raise Exception("Unsuported type: \'" + file_type + "\'")
+        elif os.path.isdir(stream):
+            self._set_from_dir(stream)
+        else:
+            raise Exception("Path is neither a directory or file")
+
 
     @property
     def mails(self) -> list:

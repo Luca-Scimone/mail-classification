@@ -1,11 +1,11 @@
-from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
-from src.pipelines import PipelinesManager
+from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
+from example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
+from pipelines import PipelinesManager
 
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
     # some tasks
-    manager = PipelinesManager()
+    manager = PipelinesManager(path="/home/goncalo/TPS_2A/pi/Particuliers2018 (1).csv")
 
     # First example, you can instantiate a high pipeline_example
     svm_pipeline = SVM_Pipeline()

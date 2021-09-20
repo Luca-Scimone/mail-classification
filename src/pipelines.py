@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.class_mails.class_mails import Mails, Data
+from class_mails.class_mails import Mails, Data
 
 """ 
 PipelinesManager and BasePipeline MUST BE independant from any implementation (SKLEARN for example).

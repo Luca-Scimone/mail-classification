@@ -1,8 +1,8 @@
 from sklearn.pipeline import make_pipeline
 
-from src.class_mails.class_mails import Mails
-from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from src.pipelines import BasePipeline
+from class_mails.class_mails import Mails
+from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
+from pipelines import BasePipeline
 
 """
 The directory example_pipelines provide fast way to launch good pipelines that has been proved.
