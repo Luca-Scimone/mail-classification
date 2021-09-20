@@ -59,7 +59,7 @@ class Mails(Data):
                 next(csv_reader)
 
             for row in csv_reader:
-                temp_dict = dict()
+                temp_dict = {}
 
                 for col_idx, col in enumerate(row):
                     if col_idx < len(self._row_names):
@@ -94,8 +94,9 @@ class Mail:
         return self.fields_mail.__str__()
 
     """ 
-    Set a label to a particular mail. This function should never been used. It is only needed when 
-    we want to write mails with label on disk. The PipelinesManager should never called set_label. 
+    Set a label to a particular mail. This function should never been used. It
+    is only needed when we want to write mails with label on disk. The
+    PipelinesManager should never called set_label. 
     """
 
     def set_label(self, label: list):
@@ -109,7 +110,8 @@ class Mail:
         return self.fields_mail["label"]
 
     """
-        Split labels in multiple lists. For example [1,0,1,0] become ([1,0,0,0], [0,0,1,0]). 
+        Split labels in multiple lists. For example [1,0,1,0] become
+        ([1,0,0,0], [0,0,1,0]). 
     """
 
     def labels(self) -> list:
