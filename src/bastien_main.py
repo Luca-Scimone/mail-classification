@@ -1,12 +1,12 @@
 from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from src.estimators.preprocessing import ToNumpy
+from src.estimators.preprocessing import ToDataFrame
 from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from src.pipelines import PipelinesManager
 
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
     # some tasks
-    manager = PipelinesManager()
+    manager = PipelinesManager(path="/home/bastien/Documents/TPS/Projet Inge/pi/mails.csv")
 
     # First example, you can instantiate a high pipeline_example
     svm_pipeline = SVM_Pipeline()
@@ -17,6 +17,6 @@ if __name__ == "__main__":
     # Empty_Pipeline in pipelines_example. This main must stay as short as possible.
     my_pipeline = EmptyPipeline()
     my_pipeline.shared_data = manager.data  # set data for training
-    my_pipeline.pipeline = [ToNumpy()]  # Give your pipeline
+    my_pipeline.pipeline = [ToDataFrame()]  # Give your pipeline
     my_pipeline.transform()
     my_pipeline.show_confusion_matrix()

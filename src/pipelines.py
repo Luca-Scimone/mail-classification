@@ -19,7 +19,7 @@ class PipelinesManager:
         self.pipelines = dict()
         self._data = Mails()  # READ ONLY
         self._read_data(path, encoding, header)
-        print("Your data is : ", self.data)
+        print("Your data is : ", self.data, "\n End")
         self._name = 'name'
         self.nb_pipelines = 0
 

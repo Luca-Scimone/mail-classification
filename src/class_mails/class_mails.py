@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 import os.path
 import csv
 
+import pandas as pd
+from pandas import DataFrame
+
 
 class Data(ABC):
     """
@@ -137,3 +140,23 @@ class Mail:
 
     def object(self) -> str:
         return self.fields_mail["object"]
+
+    """
+    Transform a mail to a dict where value are array. It's only useful for the to_dataframe method. 
+    """
+
+    def _to_dict_array(self):
+        for key, value in self.fields_mail.items():
+            self.fields_mail[key] = [value]
+        return self.fields_mail
+
+    """
+    Return a mail as a pandas dataframe. For example : 
+       de   cc   cci   A   objet                  corps
+    0  Na   Na   Naa   N   Na            un mail random
+    1  Na   Na   Naa   N   Na      Un autre mail random
+    """
+
+    def to_dataframe(self) -> DataFrame:
+        return pd.DataFrame.from_dict(self._to_dict_array())
+

@@ -13,20 +13,19 @@ Transform Mails to numpy array. This is basically the first estimator to use for
 """
 
 
-class ToNumpy(BaseEstimator, TransformerMixin):
+class ToDataFrame(BaseEstimator, TransformerMixin):
 
     def __init__(self):
-        super(ToNumpy, self).__init__()
+        super(ToDataFrame, self).__init__()
 
     def fit(self, mails):
         pass
 
     # TODO find a proper way to implement this.
     def transform(self, mails):
+        df = pd.DataFrame()
         for mail in mails.mails:
-            print(mail)
-            df = pd.DataFrame.from_dict(mail.fields_mail)
-        print(df)
+            df = df.append(mail.to_dataframe(), ignore_index=True)
         return df
 
 
