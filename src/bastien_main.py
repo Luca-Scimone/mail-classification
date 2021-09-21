@@ -18,5 +18,5 @@ if __name__ == "__main__":
     my_pipeline = EmptyPipeline()
     my_pipeline.shared_data = manager.data  # set data for training
     my_pipeline.pipeline = [ToDataFrame()]  # Give your pipeline
-    my_pipeline.transform()
+    out = my_pipeline.transform()
     my_pipeline.show_confusion_matrix()

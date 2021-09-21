@@ -13,7 +13,7 @@ Transform Mails to numpy array. This is basically the first estimator to use for
 """
 
 
-class ToDataFrame(BaseEstimator, TransformerMixin):
+class ToDataFrame:
 
     def __init__(self):
         super(ToDataFrame, self).__init__()

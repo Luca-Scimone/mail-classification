@@ -58,9 +58,10 @@ class EmptyPipeline(BasePipeline):
             return 0
 
         if self.pipeline is not None:
-            self.pipeline.transform(self.shared_data)
+            out = self.pipeline.transform(self.shared_data)
         else:
             print("Your pipeline is empty. Please provide a pipeline before running fit method.")
+        return out
 
     """ 
     Dump the model in a file. This function should also keep the estimators name of the pipeline 
