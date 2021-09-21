@@ -52,9 +52,6 @@ class Mails(Data):
     """
 
     def set(self, stream, encoding, header):
-        if not os.path.isfile(stream):
-            raise Exception("Not a regular file", stream)
-
         with open(stream, encoding=encoding, newline='') as file:
             csv_reader = csv.reader(file)
 
