@@ -52,22 +52,36 @@ class Mails(Data):
     """
 
     def set(self, stream, encoding, header):
+        if not os.path.exists(stream):
+            raise Exception("Missing or invalid path to data.")
+
+        if not os.path.isfile(stream):
+            raise Exception("Path to data is not a regular file.")
+
         with open(stream, encoding=encoding, newline='') as file:
             csv_reader = csv.reader(file)
 
             if header:
                 next(csv_reader)
 
-            for row in csv_reader:
+            row_cnt = 0
+            for mail_cnt, row in enumerate(csv_reader):
                 temp_dict = {}
 
-                for col_idx, col in enumerate(row):
+                col_idx = 0
+                for col in row:
                     if col_idx < len(self._row_names):
                         temp_dict[self._row_names[col_idx]] = col
                     else:
                         print("Warning: extra row in ", stream)
+                    col_idx += 1
+
+                if col_idx < len(self._row_names):
+                    raise Exception("Missing rows in mail %d (bad CSV format?)"
+                                    % (mail_cnt))
 
                 self._mails.append(Mail(temp_dict))
+                row_cnt += 1
 
     @property
     def mails(self) -> list:
