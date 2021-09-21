@@ -73,7 +73,8 @@ class Mails(Data):
                     if col_idx < len(self._row_names):
                         temp_dict[self._row_names[col_idx]] = col
                     else:
-                        print("Warning: extra row in ", stream)
+                        print("[W] Ignored column %d in mail %d of %s (extra column)"
+                              % (col_idx, mail_cnt, stream))
                     col_idx += 1
 
                 if col_idx < len(self._row_names):
