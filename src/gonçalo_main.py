@@ -5,7 +5,7 @@ from pipelines import PipelinesManager
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
     # some tasks
-    manager = PipelinesManager("/home/goncalo/atom_operations.c")
+    manager = PipelinesManager("/home/goncalo/TPS_2A/pi/Particuliers2018 (1).csv")
 
     # First example, you can instantiate a high pipeline_example
     svm_pipeline = SVM_Pipeline()

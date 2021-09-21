@@ -77,7 +77,7 @@ class Mails(Data):
                     col_idx += 1
 
                 if col_idx < len(self._row_names):
-                    raise Exception("Missing rows in mail %d (bad CSV format?)"
+                    raise Exception("Missing data in mail %d (bad CSV format?)"
                                     % (mail_cnt))
 
                 self._mails.append(Mail(temp_dict))
