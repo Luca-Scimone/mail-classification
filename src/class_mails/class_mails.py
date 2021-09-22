@@ -35,6 +35,7 @@ class Mails(Data):
         self._mails = []
         self._mails_df = None
         # List of label names
+        self._labels = []
         self._label_names = []
         # Names of the rows in the CSV format
         self._row_names = [
@@ -115,6 +116,7 @@ class Mails(Data):
                                     % (mail_cnt))
 
                 self._mails.append(Mail(temp_dict, label))
+                self._labels.append(label)
                 row_cnt += 1
 
     @property
@@ -142,8 +144,10 @@ class Mails(Data):
             return self._mails_df
 
     def labels_ls(self) -> list:
-        # Return the label as a list
-        pass
+        """
+        Return the label as a list
+        """
+        return self._labels
 
 
 class Mail:

@@ -13,6 +13,8 @@ if __name__ == "__main__":
     print(manager.data.mails[1].label())
     print(manager.data.mails[2].label())
 
+    print(manager.data.labels_ls())
+
     pret_pipeline = EmptyPipeline()
 
     pret_pipeline.shared_data = manager.data
