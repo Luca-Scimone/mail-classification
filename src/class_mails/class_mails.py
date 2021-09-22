@@ -29,12 +29,25 @@ class Mails(Data):
         self._mails = []
         # Names of the rows in the CSV format
         self._row_names = [
-                "de",
-                "cc",
-                "cci",
-                "A",
                 "objet",
-                "corps"
+                "corps",
+                "de_nom",
+                "de_adr",
+                "de_type",
+                "A_nom",
+                "A_adr",
+                "A_type",
+                "CC_nom",
+                "CC_adr",
+                "CC_type",
+                "CCi_nom",
+                "CCi_adr",
+                "CCi_type",
+                "label",
+                "diffusion",
+                "importance",
+                "info_fact",
+                "kilometrage"
             ]
 
     def __str__(self):
