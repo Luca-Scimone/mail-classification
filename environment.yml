@@ -32,3 +32,4 @@ dependencies:
   - pytorch
   - conda-forge::transformers
   - conda-forge::sentencepiece
+  - unidecode
