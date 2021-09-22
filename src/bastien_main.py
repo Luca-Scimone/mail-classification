@@ -1,5 +1,7 @@
-from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from src.estimators.preprocessing import ToDataFrame
+
+from sklearn.svm import SVC
+
+from src.estimators.preprocessing import ToDataFrame, Lemme, Purge
 from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from src.pipelines import PipelinesManager
 
@@ -17,6 +19,7 @@ if __name__ == "__main__":
     # Empty_Pipeline in pipelines_example. This main must stay as short as possible.
     my_pipeline = EmptyPipeline()
     my_pipeline.shared_data = manager.data  # set data for training
-    my_pipeline.pipeline = [ToDataFrame()]  # Give your pipeline
+    my_pipeline.pipeline = [ToDataFrame(), Lemme()]  # Give your pipeline
     out = my_pipeline.transform()
+    print(out)
     my_pipeline.show_confusion_matrix()

@@ -18,8 +18,8 @@ class ToDataFrame:
     def __init__(self):
         super(ToDataFrame, self).__init__()
 
-    def fit(self, mails):
-        pass
+    def fit(self, x, y=None):
+        return self
 
     # TODO find a proper way to implement this.
     def transform(self, mails):
@@ -37,13 +37,16 @@ class Lemme(BaseEstimator, TransformerMixin):
     def fit(self, x, y=None):
         return self
 
-    def lemme(self, text):
-        # on utilise la lemmatisation de la librairie spacy
+    def lemme_text(self, text):
         return " ".join(word.lemma_ for word in self.nlp(text))
+
+    def lemme(self, col):
+        # on utilise la lemmatisation de la librairie spacy
+        return col.apply(self.lemme_text)
 
     def transform(self, data_text):
         # On applique la lemmatisation à chaque texte de la colonne sélectionnée
-        data_text.apply(self.lemme)
+        data_text = data_text.apply(self.lemme)
         return data_text
 
 
