@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Empty_Pipeline in pipelines_example. This main must stay as short as possible.
     my_pipeline = EmptyPipeline()
     my_pipeline.shared_data = manager.data  # set data for training
-    my_pipeline.pipeline = [ToDataFrame(), Lemme()]  # Give your pipeline
+    my_pipeline.pipeline = [ToDataFrame(columns=["corps"])]  # Give your pipeline
     out = my_pipeline.transform()
     print(out)
     my_pipeline.show_confusion_matrix()
