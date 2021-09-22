@@ -34,7 +34,8 @@ class Mails(Data):
         # list of Mails
         self._mails = []
         self._mails_df = None
-        self._labels = []
+        # List of label names
+        self._label_names = []
         # Names of the rows in the CSV format
         self._row_names = [
             "objet",
@@ -92,12 +93,17 @@ class Mails(Data):
             row_cnt = 0
             for mail_cnt, row in enumerate(csv_reader):
                 temp_dict = {}
-
                 col_idx = 0
+                label = -1
+
                 for col in row:
                     if col_idx < len(self._row_names):
                         if self._row_names[col_idx] == "label":
-                            self._labels.append(col)
+                            if col in self._label_names:
+                                label = self._label_names.index(col)
+                            else:
+                                label = len(self._label_names)
+                                self._label_names.append(col)
                         else:
                             temp_dict[self._row_names[col_idx]] = col
                     else:
@@ -109,7 +115,7 @@ class Mails(Data):
                     raise Exception("Missing data in mail %d (bad CSV format?)"
                                     % (mail_cnt))
 
-                self._mails.append(Mail(temp_dict))
+                self._mails.append(Mail(temp_dict, label))
                 row_cnt += 1
 
     @property
@@ -147,7 +153,7 @@ class Mail:
     given (CC, CCi ect..)
     """
 
-    def __init__(self, mail_components: dict, label: str):
+    def __init__(self, mail_components: dict, label):
         self.mail_components = mail_components
         self._label = label
         self._mail = None
@@ -205,8 +211,8 @@ class Mail:
         0  Na   Na   Naa   N   Na            un mail random
         1  Na   Na   Naa   N   Na      Un autre mail random
         """
-        if self._mails is None:
+        if self._mail is None:
             self._mail = pd.DataFrame.from_dict(self._to_dict_array())
-            return self._mails
-        return self._mails
+            return self._mail
+        return self._mail
 
