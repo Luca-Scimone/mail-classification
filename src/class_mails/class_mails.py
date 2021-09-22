@@ -94,7 +94,6 @@ class Mails(Data):
             for mail_cnt, row in enumerate(csv_reader):
                 temp_dict = {}
                 col_idx = 0
-                label = -1
 
                 for col in row:
                     if col_idx < len(self._row_names):
