@@ -16,14 +16,12 @@ class Data(ABC):
         """
         An abstract method for the getter of the class Data
         """
-        pass
 
     @abstractmethod
     def set(self, stream, encoding, header):
         """
         An abstract method for the setter of the class Data
         """
-        pass
 
 
 class Mails(Data):
@@ -35,6 +33,7 @@ class Mails(Data):
     def __init__(self):
         # list of Mails
         self._mails = []
+        self._labels = []
         # Names of the rows in the CSV format
         self._row_names = [
                 "objet",
@@ -96,7 +95,10 @@ class Mails(Data):
                 col_idx = 0
                 for col in row:
                     if col_idx < len(self._row_names):
-                        temp_dict[self._row_names[col_idx]] = col
+                        if self._row_names[col_idx] == "label":
+                            self._labels.append(col)
+                        else:
+                            temp_dict[self._row_names[col_idx]] = col
                     else:
                         print("""[W] Ignored column %d in mail %d of %s
                               (extra column)""" % (col_idx, mail_cnt, stream))
