@@ -1,6 +1,5 @@
 from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
 from estimators.preprocessing import Lemme
-from estimators.preprocessing import ToDataFrame
 from example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from pipelines import PipelinesManager
 

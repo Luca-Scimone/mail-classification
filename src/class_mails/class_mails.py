@@ -139,7 +139,8 @@ class Mails(Data):
             df = pd.DataFrame()
             for mail in self._mails:
                 df = df.append(mail.to_dataframe(), ignore_index=True)
-            self._mails_df
+            self._mails_df = df
+            return df
         else:
             return self._mails_df
 

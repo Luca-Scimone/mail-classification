@@ -112,7 +112,7 @@ class BasePipeline(ABC):
     """
 
     @abstractmethod
-    def fit(self):
+    def fit(self, x, y):
         pass
 
     """ 

@@ -1,8 +1,8 @@
 from sklearn.pipeline import make_pipeline
 
-from class_mails.class_mails import Mails
-from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from pipelines import BasePipeline
+from ..class_mails.class_mails import Mails
+from ..estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
+from ..pipelines import BasePipeline
 
 """
 The directory example_pipelines provide fast way to launch good pipelines that has been proved.
@@ -36,14 +36,10 @@ class EmptyPipeline(BasePipeline):
     Call fit method of each estimator of the pipeline.
     """
 
-    def fit(self):
-        if self.shared_data is None:
-            print("No data have been passed to the pipeline. Maybe call Your_pipeline.set_data(manager.data) to solve "
-                  "this.")
-            return 0
+    def fit(self, x, y):
 
         if self.pipeline is not None:
-            self.pipeline.fit(self.shared_data)
+            self.pipeline.fit(x, y)
         else:
             print("Your pipeline is empty. Please provide a pipeline before running fit method.")
 
@@ -51,14 +47,10 @@ class EmptyPipeline(BasePipeline):
     Call transform method of each estimator of the pipeline.
     """
 
-    def transform(self):
-        if self.shared_data is None:
-            print("No data have been passed to the pipeline. Maybe call Your_pipeline.set_data(manager.data) to solve "
-                  "this.")
-            return 0
+    def transform(self, data):
 
         if self.pipeline is not None:
-            out = self.pipeline.transform(self.shared_data)
+            out = self.pipeline.transform(data)
         else:
             print("Your pipeline is empty. Please provide a pipeline before running fit method.")
         return out
