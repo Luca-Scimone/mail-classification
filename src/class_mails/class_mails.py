@@ -28,6 +28,32 @@ class Mails(Data):
     """
     A class Mails containing all methods to extract information from a csv file
     where mails are stored.
+
+    @param mails: A list of instance of the class Mail representing a mail.
+    Each value of the dictionay representing the mail corresponds to a name in
+    the paramater column_names (except for label which can be accessed, for
+    each mail, by the method label())
+
+    @param mails_df: A panda frame representation of mails
+
+    @param labels: A list of labels, which are integers from 0 to the total
+    number of labels. Each label is associated to an integer value. The name
+    represented by the integer can be accessed through label_names[integer]
+
+    @param label_names: A list of all the label names in the CSV file.
+
+    @param column_names: The list of each column's name in the CSV file that is
+    being read.  If a CSV file lacks on of these sections, an error is thrown
+    for bad CSV formatting.  Extra columns in a CSV file are ignored.
+
+    WARNING: This class does not check for coherence between the CSV file and
+    the column_names list. If they are not the same, information will be
+    wrongly assigned to a section it should not belong to. All CSV files should
+    therefore be organized by the same columns as the ones defined in
+    column_names - ie. objet | corps | de_nom | ...
+                  mail1 ...  | ....  | .....  | ...
+                  mail2 ...  | ....  | .....  | ...
+
     """
 
     def __init__(self):
@@ -38,7 +64,7 @@ class Mails(Data):
         self._labels = []
         self._label_names = []
         # Names of the rows in the CSV format
-        self._row_names = [
+        self._column_names = [
             "objet",
             "corps",
             "de_nom",
@@ -76,7 +102,7 @@ class Mails(Data):
     def set(self, stream, encoding, header):
         """
         Reads a csv file of path 'stream'. Each column should represent the
-        types defined in self._row_names.
+        types defined in self._column_names.
         """
 
         if not os.path.exists(stream):
@@ -97,21 +123,21 @@ class Mails(Data):
                 col_idx = 0
 
                 for col in row:
-                    if col_idx < len(self._row_names):
-                        if self._row_names[col_idx] == "label":
+                    if col_idx < len(self._column_names):
+                        if self._column_names[col_idx] == "label":
                             if col in self._label_names:
                                 label = self._label_names.index(col)
                             else:
                                 label = len(self._label_names)
                                 self._label_names.append(col)
                         else:
-                            temp_dict[self._row_names[col_idx]] = col
+                            temp_dict[self._column_names[col_idx]] = col
                     else:
                         print("""[W] Ignored column %d in mail %d of %s
                               (extra column)""" % (col_idx, mail_cnt, stream))
                     col_idx += 1
 
-                if col_idx < len(self._row_names):
+                if col_idx < len(self._column_names):
                     raise Exception("Missing data in mail %d (bad CSV format?)"
                                     % (mail_cnt))
 
