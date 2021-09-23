@@ -99,6 +99,24 @@ class Mails(Data):
     def get(self):
         return self._mails
 
+    def set_mail(self, csv_col, col_idx, temp_dict):
+        """
+        Sets the label and dictionary of a given mail
+        """
+
+        if self._column_names[col_idx] == "label":
+            if csv_col in self._label_names:
+                label = self._label_names.index(csv_col)
+            else:
+                label = len(self._label_names)
+                self._label_names.append(csv_col)
+
+            # Append the label:
+            # Set function will fetch by calling self._labels[-1]
+            self._labels.append(label)
+        else:
+            temp_dict[self._column_names[col_idx]] = csv_col
+
     def set(self, stream, encoding, header):
         """
         Reads a csv file of path 'stream'. Each column should represent the
@@ -119,30 +137,20 @@ class Mails(Data):
 
             row_cnt = 0
             for mail_cnt, row in enumerate(csv_reader):
-                temp_dict = {}
                 col_idx = 0
+                temp_dict = {}
 
                 for col in row:
-                    if col_idx < len(self._column_names):
-                        if self._column_names[col_idx] == "label":
-                            if col in self._label_names:
-                                label = self._label_names.index(col)
-                            else:
-                                label = len(self._label_names)
-                                self._label_names.append(col)
-                        else:
-                            temp_dict[self._column_names[col_idx]] = col
-                    else:
-                        print("""[W] Ignored column %d in mail %d of %s
-                              (extra column)""" % (col_idx, mail_cnt, stream))
+                    self.set_mail(col, col_idx, temp_dict)
                     col_idx += 1
 
+                if col_idx > len(self._column_names):
+                    print("[W] Too many columns in %s" % (stream))
                 if col_idx < len(self._column_names):
                     raise Exception("Missing data in mail %d (bad CSV format?)"
                                     % (mail_cnt))
 
-                self._mails.append(Mail(temp_dict, label))
-                self._labels.append(label)
+                self._mails.append(Mail(temp_dict, self._labels[-1]))
                 row_cnt += 1
 
     @property
