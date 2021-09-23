@@ -78,12 +78,9 @@ class EmptyPipeline(BasePipeline):
     """
 
     # TODO
-    def predict(self, mails=None) -> list:
-        """if mails is None:
-            mails = self.shared_data
-        # predict from label"""
-        label = []
-        return label
+    def predict(self, mails) -> list:
+        # format des mails ?
+        return self.pipeline.predict(mails)
 
     """
     Nice way to make a demo to Wagner.

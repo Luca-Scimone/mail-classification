@@ -17,7 +17,8 @@ class Lemme(BaseEstimator, TransformerMixin):
 
     def lemme(self, col):
         # on utilise la lemmatisation de la librairie spacy
-        return col.apply(self.lemme_text)
+        return " ".join(word.lemma_ for word in self.nlp(col))
+        # return col.apply(self.lemme_text)
 
     def transform(self, data_text):
         # On applique la lemmatisation à chaque texte de la colonne sélectionnée
