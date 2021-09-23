@@ -8,7 +8,7 @@ from pipelines import PipelinesManager
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
     # some tasks
-    manager = PipelinesManager(path="/home/bastien/Documents/TPS/Projet Inge/pi/mails.csv")
+    manager = PipelinesManager(path="mails.csv")
 
     # First example, you can instantiate a high pipeline_example
     # svm_pipeline = SVM_Pipeline()
@@ -20,7 +20,9 @@ if __name__ == "__main__":
     my_pipeline = EmptyPipeline()
     # my_pipeline.shared_data = manager.data  # set data for training
     my_pipeline.pipeline = [Lemme(), TfidfVectorizer(), SVC()]  # Give your pipeline
-    print(manager.data.mails_df(), manager.data.labels_ls())
-    out = my_pipeline.fit(manager.data.mails_df(), manager.data.labels_ls())
+    # print(manager.data.mails_df(), manager.data.labels_ls())
+    print(manager.data.mails_df()['corps'])
+    print(manager.data.mails_df()['corps'].shape)
+    out = my_pipeline.fit(manager.data.mails_df()['corps'], manager.data.labels_ls())
     # print(out)
     # my_pipeline.show_confusion_matrix()
