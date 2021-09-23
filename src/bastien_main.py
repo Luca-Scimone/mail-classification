@@ -1,9 +1,9 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 
-from src.estimators.preprocessing import Lemme, Purge
-from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
-from src.pipelines import PipelinesManager
+from estimators.preprocessing import Lemme, Purge
+from example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
+from pipelines import PipelinesManager
 
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
