@@ -1,4 +1,8 @@
+import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.pipeline import make_pipeline
+import seaborn as sns
 
 from class_mails.class_mails import Mails
 from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
@@ -82,24 +86,20 @@ class EmptyPipeline(BasePipeline):
         # format des mails ?
         return self.pipeline.predict(mails)
 
-    """
-    Nice way to make a demo to Wagner.
-    """
 
-    # TODO
-    def show_confusion_matrix(self, mails: Mails = None, label: list = None):
-        """if Mails is None:
-            mails = self.shared_data
-            label = self.predict(mails)
-
-        if label is None:
-            label = self.predict(mails)
-
-        # Show confusion matrix
-
-        for mail, l in enumerate(mails, label):
-            print("The mail is ", mail.message(), " And his label is ", l)"""
-        pass
+    def show_confusion_matrix(self, x_test, y_test):
+        """
+        Show the confusion matrix over entry data and out data. You must train your pipeline before. y_test contain
+        the real label of your data.
+        """
+        predictions = self.predict(x_test)
+        round_predictions = np.around(predictions)
+        mat_r = confusion_matrix(round_predictions, y_test)
+        sns.heatmap(mat_r, square=True, annot=True, fmt="d")
+        plt.xlabel("true labels")
+        plt.ylabel("predicted label")
+        plt.show()
+        print("The accuracy with RTF is {}".format(accuracy_score(y_test, round_predictions)))
 
     """ 
     Give a demo of your pipeline. 
