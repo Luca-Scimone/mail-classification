@@ -9,3 +9,4 @@ file2.csv
 *.pyc
 __pycache__
 script/data/
+checkpoints/*
