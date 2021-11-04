@@ -4,7 +4,7 @@ from transformers import BertTokenizer
 from joblib import Parallel, delayed
 from torch.utils.data import TensorDataset, random_split
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 import torch
 from types import FunctionType
@@ -13,9 +13,9 @@ from .Bert_trainer import train_model
 
 
 class Bert(BaseEstimator, TransformerMixin):
-    def __init__(self, labelizer=None, model='bert-base-uncased', max_length=64,
+    def __init__(self, labelizer=None, model='camembert-base', max_length=64,
                  quiet=False, path_to_save_stats=None, path_to_save_model=None,
-                 epochs=4, speed_val=42):
+                 epochs=4, speed_val=42, lock_gpu=False):
 
         self.quiet = quiet
         self.max_length = max_length
@@ -25,7 +25,7 @@ class Bert(BaseEstimator, TransformerMixin):
             raise TypeError("labelizer should be a callable function.")
         self.labelizer = labelizer
 
-        self.check_hardware()
+        self.check_hardware(lock_gpu)
 
         # Load the BERT tokenizer.
         if not quiet:
@@ -40,11 +40,11 @@ class Bert(BaseEstimator, TransformerMixin):
         self.epochs = epochs
         self.seed_val = speed_val
 
-    def check_hardware(self):
+    def check_hardware(self, lock_gpu):
         """
         Use the best possible architecture
         """
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and lock_gpu is False:
             self.gpu = True
 
             # Tell PyTorch to use the GPU.
@@ -57,11 +57,15 @@ class Bert(BaseEstimator, TransformerMixin):
         else:
             self.gpu = False
             self.device = torch.device("cpu")
-            self.num_cpus = min(10, cpu_count() - 1) if cpu_count() > 1 else 1
 
             if not self.quiet:
                 print('No GPU available :(')
-                print(f"Using {self.num_cpus} CPUs instead.")
+
+        self.num_cpus = min(10, cpu_count() - 1) if cpu_count() > 1 else 1
+        if self.gpu is True:
+            print(f"Using {self.num_cpus} CPUs.")
+        else:
+            print(f"Using {self.num_cpus} CPUs instead.")
 
     def encode(self, X):
         """
