@@ -11,3 +11,4 @@ __pycache__
 script/data/
 checkpoints/*
 data_csv/*
+mails_classifier.egg-info/*

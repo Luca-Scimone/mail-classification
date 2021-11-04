@@ -1,5 +1,7 @@
 from example_pipelines.pipelines_example import EmptyPipeline
 from pipelines import PipelinesManager
+from estimators.Bert import Bert
+from src.transformers.preprocessing import Lemme
 
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data
@@ -16,8 +18,11 @@ if __name__ == "__main__":
 
     pret_pipeline.shared_data = manager.data
 
-    pret_pipeline.pipeline = [ToDataFrame()]
+    pret_pipeline.pipeline = [Lemme(), Bert(path_to_save_model="model")]
 
-    out = pret_pipeline.transform()
+    X = manager.data.mails_df()['corps']
+    y = manager.data.labels_ls()
+
+    out = pret_pipeline.fit(X, y)
 
     print(out)
