@@ -1,9 +1,7 @@
-from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from estimators.preprocessing import Lemme
-from example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
-from sklearn.model_selection import train_test_split
+from example_pipelines.pipelines_example import EmptyPipeline
 from pipelines import PipelinesManager
 from estimators.Bert import Bert
+from src.transformers.preprocessing import Lemme
 
 if __name__ == "__main__":
     # Always instantiate the PipelineManager first ! It contains shared data

@@ -1,4 +1,4 @@
-from src.estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
+from src.transformers.example import ExampleEstimator, Example2Estimator, FirstEstimator
 from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from src.pipelines import PipelinesManager
 from src.estimators.Bert import Bert
