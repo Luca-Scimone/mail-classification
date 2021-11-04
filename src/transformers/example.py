@@ -6,7 +6,7 @@ and implements fit and transform method.
 """
 
 
-class FirstEstimator(BaseEstimator, TransformerMixin):
+class FirstEstimator(TransformerMixin):
 
     def fit(self, mails):
         return self
@@ -15,7 +15,7 @@ class FirstEstimator(BaseEstimator, TransformerMixin):
         return mails
 
 
-class ExampleEstimator(BaseEstimator, TransformerMixin):
+class ExampleEstimator(TransformerMixin):
     def fit(self):
         return self
 
@@ -23,7 +23,7 @@ class ExampleEstimator(BaseEstimator, TransformerMixin):
         return data
 
 
-class Example2Estimator(BaseEstimator, TransformerMixin):
+class Example2Estimator(TransformerMixin):
     def fit(self):
         return self
 

@@ -1,10 +1,10 @@
 import spacy
 from nltk import PorterStemmer
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import TransformerMixin
 from unidecode import unidecode
 
 
-class Lemme(BaseEstimator, TransformerMixin):
+class Lemme(TransformerMixin):
     def __init__(self):
         # on ne charge qu'une seule fois le modèle en mémoire
         self.nlp = spacy.load("fr_core_news_sm")
@@ -26,7 +26,7 @@ class Lemme(BaseEstimator, TransformerMixin):
         return data_text
 
 
-class Stem(BaseEstimator, TransformerMixin):
+class Stem(TransformerMixin):
 
     def __init__(self):
         self.stemmer = PorterStemmer()
@@ -44,7 +44,7 @@ class Stem(BaseEstimator, TransformerMixin):
         return data_text
 
 
-class Purge(BaseEstimator, TransformerMixin):
+class Purge(TransformerMixin):
     # cette classe permet de faire certaines opérations propre à chaque texte. Par exemple,
     # mettre le texte en minuscule, supprimer les mots trop petits...
     # On aurait pu mettre aussi la suppression des stopwords.

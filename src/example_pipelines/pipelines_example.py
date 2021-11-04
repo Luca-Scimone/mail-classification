@@ -4,10 +4,10 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.pipeline import make_pipeline
 import seaborn as sns
 
-from class_mails.class_mails import Mails
-from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from pipelines import BasePipeline
-
+from src.transformers.example import FirstEstimator, ExampleEstimator, Example2Estimator
+from src.pipelines import BasePipeline
+import sys
+print(sys.path)
 """
 The directory example_pipelines provide fast way to launch good pipelines that has been proved.
 """

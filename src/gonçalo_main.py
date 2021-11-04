@@ -1,6 +1,4 @@
-from estimators.example import ExampleEstimator, Example2Estimator, FirstEstimator
-from estimators.preprocessing import Lemme
-from example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
+from example_pipelines.pipelines_example import EmptyPipeline
 from pipelines import PipelinesManager
 
 if __name__ == "__main__":
