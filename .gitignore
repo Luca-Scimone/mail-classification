@@ -10,3 +10,4 @@ file2.csv
 __pycache__
 script/data/
 checkpoints/*
+data_csv/*
