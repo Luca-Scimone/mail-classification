@@ -8,12 +8,14 @@ from transformers import BertForSequenceClassification, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
 import torch
 from types import FunctionType
-from Bert_trainer import train_model
+from sklearn.base import BaseEstimator, TransformerMixin
+from .Bert_trainer import train_model
 
 
-class Bert():
+class Bert(BaseEstimator, TransformerMixin):
     def __init__(self, labelizer=None, model='bert-base-uncased', max_length=64,
-                 quiet=False):
+                 quiet=False, path_to_save_stats=None, path_to_save_model=None,
+                 epochs=4, speed_val=42):
 
         self.quiet = quiet
         self.max_length = max_length
@@ -33,6 +35,10 @@ class Bert():
 
         # Let's not load the model right away to save some memory
         self.model = None
+        self.path_to_save_stats = path_to_save_stats
+        self.path_to_save_model= path_to_save_model
+        self.epochs = epochs
+        self.seed_val = speed_val
 
     def check_hardware(self):
         """
@@ -186,8 +192,7 @@ class Bert():
     def transform(self, X, y=None):
         return X
 
-    def fit(self, X, y=None, path_to_save_stats=None, path_to_save_model=None,
-            epochs=4, seed_val=42):
+    def fit(self, X, y=None):
 
         if self.labelizer is not None:
             if y is not None:
@@ -208,7 +213,7 @@ class Bert():
         # Total number of training steps is [number of batches] x [number of
         # epochs].  (Note that this is not the same as the number of training
         # samples).
-        total_steps = len(train_dl) * epochs
+        total_steps = len(train_dl) * self.epochs
 
         self.load_model(len(y))
         optimizer = self.get_optimizer()
@@ -220,16 +225,9 @@ class Bert():
             test_dl,
             optimizer,
             scheduler,
-            epochs,
+            self.epochs,
             self.device,
-            path_to_save_stats,
-            path_to_save_model,
-            seed_val
+            self.path_to_save_stats,
+            self.path_to_save_model,
+            self.seed_val
         )
-
-
-
-
-
-# TESTING ====
-bert = Bert()

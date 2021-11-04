@@ -1,0 +1,12 @@
+README.md
+setup.py
+mails_classifier.egg-info/PKG-INFO
+mails_classifier.egg-info/SOURCES.txt
+mails_classifier.egg-info/dependency_links.txt
+mails_classifier.egg-info/requires.txt
+mails_classifier.egg-info/top_level.txt
+src/__init__.py
+src/bastien_main.py
+src/gonçalo_main.py
+src/luca_main.py
+src/pipelines.py
