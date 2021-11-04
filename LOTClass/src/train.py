@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description='main',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
-    parser.add_argument('--dataset_dir', default='datasets/agnews/',
+    parser.add_argument('--dataset_dir', default='datasets/',
                         help='dataset directory')
     parser.add_argument('--label_names_file', default='label_names.txt',
                         help='file containing label names (under dataset directory)')
