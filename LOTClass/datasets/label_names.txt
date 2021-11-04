@@ -2,5 +2,5 @@ Réclamation
 Relève de compteur
 Déménagement
 Espace client
-Facture – Paiement
-Contrat – Coordonnées personnelles
+Facture   Paiement
+Contrat   Coordonnées personnelles
