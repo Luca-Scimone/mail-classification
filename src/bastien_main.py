@@ -8,10 +8,11 @@ from tensorflow.python.keras.utils.np_utils import to_categorical
 from src.pipelines import PipelinesManager
 
 if __name__ == "__main__":
-    manager = PipelinesManager(path="../mails.csv")
+    #manager = PipelinesManager(path="../all_mails.csv")
+    mails = pd.read_csv("../all_mails.csv")
 
-    x = manager.data.mails_df()['corps']
-    y = manager.data.labels_ls()
+    x = mails['Corps']
+    y = list(mails['Catégorie'])
 
     tfidf = TfidfVectorizer()  # Give your pipeline
     out = tfidf.fit_transform(x)
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     print(x)
 
     model = Sequential()
-    model.add(Input(shape=(548,)))
+    model.add(Input(shape=(3531,)))
     model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(64, activation='relu'))
