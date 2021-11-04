@@ -1,21 +1,14 @@
 from src.transformers.example import ExampleEstimator, Example2Estimator, FirstEstimator
 from src.example_pipelines.pipelines_example import SVM_Pipeline, EmptyPipeline
 from src.pipelines import PipelinesManager
+from src.estimators.Bert import Bert
+import pandas as pd
 
 if __name__ == "__main__":
-    # Always instantiate the PipelineManager first ! It contains shared data and soon it will permit to parallelize
-    # some tasks
-    manager = PipelinesManager()
+    df = pd.read_csv("cola_public_1.1/cola_public/raw/in_domain_train.tsv", delimiter="\t",
+                     header=None, names=["sentence_source", "label", "label_notes", "sentence"])
 
-    # First example, you can instantiate a high pipeline_example
-    svm_pipeline = SVM_Pipeline()
-    svm_pipeline.shared_data = manager.data  # set data for training
-    svm_pipeline.demo()  # Run your demo defined in svm_pipeline
+    X = df.sentence.values
+    y = df.label.values
 
-    # Maybe you want to define your pipeline. It is not the best way to do so. You can rather inherited
-    # Empty_Pipeline in pipelines_example. This main must stay as short as possible.
-    my_pipeline = EmptyPipeline()
-    my_pipeline.shared_data = manager.data  # set data for training
-    my_pipeline.pipeline = (FirstEstimator(), ExampleEstimator(), Example2Estimator())  # Give your pipeline
-    my_pipeline.transform()
-    my_pipeline.show_confusion_matrix()
+    Bert(model="bert-base-uncased", lock_gpu=True, path_to_save_stats="stats", path_to_save_model="model").fit(X, y)

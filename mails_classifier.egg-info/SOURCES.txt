@@ -8,5 +8,6 @@ mails_classifier.egg-info/top_level.txt
 src/__init__.py
 src/bastien_main.py
 src/gonçalo_main.py
+src/json_to_csv.py
 src/luca_main.py
 src/pipelines.py
